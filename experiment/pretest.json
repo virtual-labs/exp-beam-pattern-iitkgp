@@ -1,39 +1,227 @@
-{
-  "version": 2.0,
+  {
+	  "version": 2.0,
   "questions": [
     {
-      "question": "This is a Sample Question 1?",
-      "answers": {
-        "a": "answer1",
-        "b": "answer2",
-        "c": "answer3",
-        "d": "answer4"
-      },
-      "explanations": {
-        "a": "Explanation 1  <a href='www.google.com'>here</a>",
-        "b": "Explanation 2",
-        "c": "Explanation 2",
-        "d": "Explanation 2"
-      },
-      "correctAnswer": "a",
-      "difficulty": "beginner"
+    "question": "1. What does an antenna's 'beam pattern' illustrate?",
+    "answers": {
+      "a": "The antenna's physical size and weight",
+      "b": "The strength and direction of radio waves it transmits or receives",
+      "c": "The amount of power the antenna consumes",
+      "d": "The type of data the antenna can process"
     },
-    {
-      "question": "This is a Sample Question 2?",
-      "answers": {
-        "a": "answer1",
-        "b": "answer2",
-        "c": "answer3",
-        "d": "answer4"
-      },
-      "explanations": {
-        "a": "Explanation 1  <a href='www.google.com'>here</a>",
-        "b": "Explanation 2",
-        "c": "Explanation 2",
-        "d": "Explanation 2"
-      },
-      "correctAnswer": "c",
-      "difficulty": "beginner"
-    }
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "2. The '3dB beamwidth' is the angular width where the antenna's radiated power drops to what level?",
+    "answers": {
+      "a": "One-quarter of the maximum power",
+      "b": "Zero power",
+      "c": "One-half of the maximum power",
+      "d": "Three-quarters of the maximum power"
+    },
+    "correctAnswer": "c",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "3. What is the 'horizontal beam pattern' of a base station antenna used to study?",
+    "answers": {
+      "a": "The signal strength directly above the antenna",
+      "b": "The signal coverage pattern on the ground, in a 360-degree plane",
+      "c": "The signal's ability to penetrate buildings",
+      "d": "The antenna's signal strength at different elevations"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "4. The 'vertical beam pattern' is concerned with the signal's strength at different...?",
+    "answers": {
+      "a": "Frequencies",
+      "b": "Distances from the tower",
+      "c": "Compass directions (north, south, east, west)",
+      "d": "Elevation angles (up and down)"
+    },
+    "correctAnswer": "d",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "5. A narrower 3dB beamwidth in the horizontal plane generally implies what?",
+    "answers": {
+      "a": "The antenna covers a wider area all around it",
+      "b": "The antenna's signal is weaker",
+      "c": "The antenna's signal is more focused in a specific direction",
+      "d": "The antenna can only be used indoors"
+    },
+    "correctAnswer": "c",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "6. What is the primary purpose of studying the vertical beam pattern?",
+    "answers": {
+      "a": "To determine the maximum range of the antenna on a flat plane",
+      "b": "To ensure the signal is aimed correctly towards the ground where users are",
+      "c": "To measure the antenna's total power output",
+      "d": "To check for interference from satellite signals"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "7. The 'tilt angle' in a vertical beam pattern refers to...?",
+    "answers": {
+      "a": "The physical angle the antenna is mounted at",
+      "b": "The angle at which the main lobe of the signal is directed up or down",
+      "c": "The angle of the antenna relative to the north pole",
+      "d": "The width of the main signal beam"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "8. Why is finding the 3dB beamwidth important for a base station?",
+    "answers": {
+      "a": "It determines the antenna's manufacturing cost",
+      "b": "It helps define the specific coverage area the antenna will serve",
+      "c": "It indicates the antenna's color",
+      "d": "It measures the antenna's data speed"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "9. A base station antenna's main lobe is...",
+    "answers": {
+      "a": "The direction of weakest signal",
+      "b": "The part of the antenna that physically moves",
+      "c": "The direction of maximum signal strength and coverage",
+      "d": "A secondary, undesired signal"
+    },
+    "correctAnswer": "c",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "10. Calculating the horizontal and vertical beamwidths helps network planners do what?",
+    "answers": {
+      "a": "Choose the correct paint color for the antenna tower",
+      "b": "Control interference and optimize coverage for users",
+      "c": "Determine the antenna's power consumption",
+      "d": "Calculate the antenna's total weight"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "11. What is a 'sidelobe' in an antenna's beam pattern?",
+    "answers": {
+      "a": "The main, intended direction of the signal",
+      "b": "A smaller beam of radiation in an undesired direction",
+      "c": "The physical mounting bracket for the antenna",
+      "d": "The part of the antenna that receives power"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "12. Adjusting the 'tilt angle' of the vertical pattern primarily helps to...?",
+    "answers": {
+      "a": "Change the signal's frequency",
+      "b": "Increase the antenna's total power",
+      "c": "Control how far the signal reaches and reduce interference with distant cells",
+      "d": "Make the antenna point towards the east or west"
+    },
+    "correctAnswer": "c",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "13. The objective of studying the horizontal beam pattern relates to which plane of coverage?",
+    "answers": {
+      "a": "The vertical (up and down) plane",
+      "b": "The azimuthal (left and right) plane",
+      "c": "The diagonal plane",
+      "d": "The internal circuitry plane"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "14. A 'beam pattern' is a graphical representation of what antenna property?",
+    "answers": {
+      "a": "Its temperature",
+      "b": "Its radiation intensity in different directions",
+      "c": "Its electrical resistance",
+      "d": "Its age"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "15. Why would an engineer want to know the 3dB beamwidth specifically?",
+    "answers": {
+      "a": "It defines the most effective and useful part of the signal beam",
+      "b": "It is the only part of the signal that carries data",
+      "c": "It tells the antenna's maximum possible range",
+      "d": "It determines the physical length of the antenna"
+    },
+    "correctAnswer": "a",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "16. If a base station antenna has a very narrow vertical beamwidth, it means...",
+    "answers": {
+      "a": "The signal is spread out widely in the vertical direction",
+      "b": "The signal is highly concentrated at a specific elevation angle",
+      "c": "The antenna provides weak signal coverage",
+      "d": "The antenna covers a full 360-degree circle"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "17. The 'main lobe' is found in which beam patterns?",
+    "answers": {
+      "a": "Only the horizontal pattern",
+      "b": "Only the vertical pattern",
+      "c": "Neither the horizontal nor the vertical pattern",
+      "d": "Both the horizontal and vertical patterns"
+    },
+    "correctAnswer": "d",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "18. What is the 'tilt angle' of a base station antenna primarily used to manage?",
+    "answers": {
+      "a": "The signal's frequency band",
+      "b": "The cell's coverage area and potential interference",
+      "c": "The antenna's power source",
+      "d": "The direction of the horizontal coverage"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "19. An antenna's beam pattern is also known as its...",
+    "answers": {
+      "a": "Radiation pattern",
+      "b": "Frequency response",
+      "c": "Power curve",
+      "d": "Impedance chart"
+    },
+    "correctAnswer": "a",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "20. The '3dB' in '3dB beamwidth' is a reference to what?",
+    "answers": {
+      "a": "The signal power being reduced by half",
+      "b": "The antenna having three distinct beams",
+      "c": "The signal traveling for three kilometers",
+      "d": "The antenna operating at three gigahertz"
+    },
+    "correctAnswer": "a",
+    "difficulty": "intermediate"
+  }
+
+
   ]
 }
