@@ -1,14 +1,11 @@
 ## Aim of experiment
 
-To understand the pathloss prediction formula.
+To find the 3dB beamwidth of a base station antenna.
 
 ### Objective:
 
+1. To study the horizontal beam pattern of the Base Station antenna,
+2. To study the vertical beam pattern of the Base Station antenna,
+3. To calculate the beamwidth for horizontal beam pattern,
+4. To calculate the beamwidth and tilt angle for vertical beam pattern.
 
-1. Calculation of received signal strength as a function of distance of separation, antenna height and carrier frequency.
-2. To understand the impact of :-
-- Transmitter Power,
-- Pathloss exponent,
-- Carrier frequency,
-- Receiver antenna height,
-- Transmitter antenna height.
