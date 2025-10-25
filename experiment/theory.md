@@ -41,7 +41,7 @@ $\phi_{3dB}$ is the elevation 3 dB beam width value, which may be assumed to be 
 
 $\phi_{tilt}$ is the tilt angle.
 
-1.1 Example of beam width calculation for Expt 3A:-
+### 1.1 Example of beam width calculation for Expt 3A:-
 
 Calculation of beam width:
 Suppose at $0^\circ$ the received power is -75.47 dBm.
@@ -49,7 +49,7 @@ At $10^\circ$ the received power is -78.47dBm.
 There is a 3 dBm fall in received power at $-10^\circ$ and $10^\circ$.
 So, beam width = ($10^\circ - (-10^\circ)) = 20^\circ$.
 
-1.2 Example of beamwidth calculation for Expt 3B:-
+### 1.2 Example of beamwidth calculation for Expt 3B:-
 
 Calculation of tilt angle and beamwidth:
 First, find the angle where the received power is maximum. This angle is the tilt angle.
