@@ -4,6 +4,8 @@
 
 2) Gordon L. Stuber, 'Principles of Mobile Communications', 2nd Edition, Gordon L. Stuber, Georgia Institute of Technology, Atlanta, Georgia, USA, Kluwer Academic Publishers.
 
+3) Report ITU-R, M.2135 - 'Guidelines for evaluation of radio interface technologies for IMTadvanced'.
+
 #### Video Lectures
-- [NPTEL](http://nptel.ac.in/courses/117102062/10)
+- [VERTICAL AND HORIZONTAL POLARIZATION IN ANTENNA](https://www.youtube.com/watch?v=HrIO0sNdy78)
 
