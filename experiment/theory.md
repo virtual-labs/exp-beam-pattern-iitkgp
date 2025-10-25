@@ -1,29 +1,20 @@
 ## Theory
 **Introduction:**  
-Exp-3:- Beam Pattern
-
-Aim:
-
-To find the 3dB beam width of a base station antenna.
-
-Objective:
-
-To study horizontal beam pattern and calculate the 3 dB beam width,
-
-To study the vertical beam pattern of the Base Station antenna,
-
-To calculate the beam width for horizontal beam pattern,
-
-To calculate the beam width and tilt angle for vertical beam pattern.
-
-Theory for Experiment 3:-Beam Pattern
 
 The antennas used at the base station of a cellular system play an important role in determining the coverage area, the interference, and hence the quality of service (signal strength) experienced by the user equipment in the downlink. It plays a similar role in the uplink. An omnidirectional antenna is simple to use compared to a directive antenna. Directive antennas limit the radiated signal power to a specific direction. This helps in reducing spatial interference and increasing capacity through sectoring.
 
 A horizontal antenna pattern is used to obtain sectoring, details of which are given below. Similar to the horizontal beam pattern, a vertical beam pattern is also used along with a vertical beam tilt; the higher the tilt, the smaller the coverage.
 
+<div align="center">
+    <img src="images/theory1.png" alt="Large Scale Fading">  
+      </div>
+      
 Usually the 3dB (half power) width is used as a measure of the beam width.
 
+<div align="center">
+    <img src="images/theory2.png" alt="Large Scale Fading">  
+      </div>
+      
 The horizontal antenna pattern used is specified as:
 
 $$A(\theta) = -\min\left[12\left(\frac{\theta}{\theta_{3dB}}\right)^2, A_m\right]$$
@@ -68,5 +59,6 @@ Example:
 Suppose the maximum power is at $0^\circ$ (making the tilt angle $0^\circ$).
 Suppose at $1.15^\circ$ and $-1.15^\circ$ the received power is -43.08 dB (which is 3dB down from a maximum of -40.08 dB).
 The beam width will be = ($1.15^\circ - (-1.15^\circ)) = 2.3^\circ$.
+
  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>    
  
