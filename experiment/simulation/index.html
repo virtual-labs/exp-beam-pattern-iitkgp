@@ -192,7 +192,7 @@
         
         /* --- STYLES FOR EXP 3A (HORIZONTAL) --- */
         #exp3a-simulation-display {
-            background-image: url('bg.png'); 
+            background-image: url('images/bg.png'); 
             background-size: cover; 
             background-position: center; 
             position: relative;
@@ -321,7 +321,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         #exp3b-simulation-display {
-            background-image: url('bg.png');
+            background-image: url('images/bg.png');
             background-size: cover;
             background-position: center;
             position: relative;
@@ -387,7 +387,7 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="simulation-container" class="container">
         <header class="header">
-            <h1>Beam Pattern</h1>
+            <h1></h1>
             <h2 id="global-experiment-title" class="text-xl"></h2>
         </header>
 
@@ -409,8 +409,8 @@
                 <div class="flex flex-col lg:flex-row gap-6 w-full">
                     <div id="exp3a-simulation-panel" class="simulation-panel flex flex-col items-center justify-center p-6 space-y-4">
                         <div id="exp3a-simulation-display" class="relative w-full max-w-lg h-64 rounded-lg overflow-hidden flex items-center justify-center">
-                            <img id="exp3a-antenna" src="tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
-                            <img id="exp3a-mobile" class="absolute h-10 w-auto z-20" src="mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
+                            <img id="exp3a-antenna" src="images/tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
+                            <img id="exp3a-mobile" class="absolute h-10 w-auto z-20" src="images/mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
                             <div id="exp3a-mobile-tooltip" class="hidden"></div>
                             <canvas id="exp3a-beam-pattern-drawing-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
                         </div>
@@ -478,8 +478,8 @@
                 <div class="flex flex-col lg:flex-row gap-6 w-full">
                     <div id="exp3b-simulation-panel" class="simulation-panel flex flex-col items-center justify-center p-6 space-y-4">
                         <div id="exp3b-simulation-display" class="relative w-full max-w-lg h-64 rounded-lg overflow-hidden flex items-center justify-center">
-                            <img id="exp3b-antenna" src="tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
-                            <img id="exp3b-mobile" class="absolute h-10 w-auto z-20" src="mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
+                            <img id="exp3b-antenna" src="images/tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
+                            <img id="exp3b-mobile" class="absolute h-10 w-auto z-20" src="images/mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
                             <div id="exp3b-htx-label">hTx: 60.0m</div>
                             <div id="exp3b-tilt-label-display">1.0deg Tilt</div>
                             <div id="exp3b-mobile-info-box" class="hidden">
