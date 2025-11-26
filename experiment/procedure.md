@@ -85,13 +85,19 @@ Follow the instructions given below to perform the experiments:-
 <div align="center">
     <img src="images/instruction10.png" alt="Large Scale Fading">  
       </div>
+<div align="center">
+    <img src="images/instruction11.png" alt="Large Scale Fading">  
+      </div>
       
 ### 1.5 Generating the report :-
 
 - Step 20:- Follow Steps 9 to 12 to generate the pdf report of the experiment you have done.
 
 <div align="center">
-    <img src="images/instruction11.png" alt="Large Scale Fading">  
+    <img src="images/instruction12.png" alt="Large Scale Fading">  
+      </div>
+      <div align="center">
+    <img src="images/instruction13.png" alt="Large Scale Fading">  
       </div>
       
 - Step 21:-You can redo the entire experiment by clicking on the button RESET.
