@@ -37,29 +37,27 @@ Follow the instructions given below to perform the experiments:-
 <div align="center">
     <img src="images/instruction4.png" alt="Large Scale Fading">  
       </div>
-      
-### 1.3 Generating the report :-
-
-- Step 9:-Click on the button REPORT to generate the report of your experiment.
-
-- Step 10:-Click on the button SAVE to save your report
 
 <div align="center">
     <img src="images/instruction5.png" alt="Large Scale Fading">  
       </div>
       
-- Step 11:-A dialogue box appears with the message that your report is successfully generated. Click on the buton OK to save your pdf report.
+### 1.3 Generating the report :-
+
+- Step 9:-Click on the button REPORT to generate the report of your experiment.
+
 
 <div align="center">
     <img src="images/instruction6.png" alt="Large Scale Fading">  
       </div>
       
-- Step 12:-Finally,you can view the pdf report of the experiment you have done.
+- Step 11:-A dialogue box appears with the message that your report is successfully generated.
 
 <div align="center">
     <img src="images/instruction7.png" alt="Large Scale Fading">  
       </div>
       
+- Step 12:-Finally,you can view the pdf report of the experiment you have done.      
 - Step 13:-You can redo the entire experiment by clicking on the button RESET.
 
 ### 1.4 Performing the experiment 3B:-
