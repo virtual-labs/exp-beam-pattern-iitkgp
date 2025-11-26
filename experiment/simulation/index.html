@@ -373,6 +373,12 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
             z-index: 15;
         }
+        #exp3b-mobile {
+            cursor: grab; /* Indicates draggable item */
+        }
+        #exp3b-mobile:active {
+            cursor: grabbing;
+        }
         #exp3b-mobile.mobile-fallback {
              width: 40px; 
             height: 40px;
@@ -1221,13 +1227,15 @@
             currentAngle: 0,
             randomTiltEnabled: false,
             actualTilt: 0,
-            fixedDistance: 574.0,
+            fixedDistance: 574.0, // This is now variable/state based on drag
             referenceDistance: 400,
             L0_at_reference: 36 - (-78),
             isBeamwidthCorrect: false,
             ANTENNA_REAL_HEIGHT: 60,
             MOBILE_VISUAL_MIN_Y_RATIO: 0.1,
             MOBILE_VISUAL_MAX_Y_RATIO: 0.9,
+            PIXELS_PER_METER: 0.55,
+            isDragging: false,
             
             // --- 3B DOM Elements ---
             dom: {},
@@ -1280,6 +1288,11 @@
                 this.dom.submitButton.addEventListener('click', () => this.handleSubmit());
                 this.dom.reportButton.addEventListener('click', () => this.generateReportPdf());
                 window.addEventListener('resize', () => this.resizeAllCanvases());
+
+                // --- Drag Logic ---
+                this.dom.mobileElement.addEventListener('mousedown', (e) => this.startDrag(e));
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', () => this.stopDrag());
             },
 
             // --- 3B Methods ---
@@ -1288,6 +1301,9 @@
                 this.readings = [];
                 this.dom.positionSlider.value = 0;
                 this.currentAngle = 0;
+                // Reset fixed distance
+                this.fixedDistance = 574.0;
+                
                 if (this.dom.currentAngleDisplay) {
                     this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle}°`;
                 }
@@ -1336,6 +1352,67 @@
                 if (this.currentExperiment) {
                     this.updateMobilePosition(this.currentAngle, this.currentExperiment);
                 }
+            },
+
+            // --- Drag Functionality ---
+            startDrag: function(e) {
+                if (this.currentExperiment !== 'exp3b') return;
+                this.isDragging = true;
+                this.dom.mobileElement.style.cursor = 'grabbing';
+                e.preventDefault(); 
+            },
+
+            stopDrag: function() {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.dom.mobileElement.style.cursor = 'grab';
+                }
+            },
+
+            drag: function(e) {
+                if (!this.isDragging) return;
+                
+                const simRect = this.dom.simulationDisplay.getBoundingClientRect();
+                
+                // --- Coordinate System ---
+                // Pivot point is defined visually where the antenna radiation center is.
+                // Based on layout: Antenna is at left 15% (approx 135px if width 900)
+                // Antenna vertical center is roughly middle (50% height).
+                const pivotX = simRect.width * 0.15;
+                const pivotY = simRect.height * 0.5;
+
+                const mouseX = e.clientX - simRect.left; 
+                const mouseY = e.clientY - simRect.top;
+                
+                // 1. Calculate Horizontal Distance
+                let dx = mouseX - pivotX;
+                // Clamp X to avoid going behind antenna or too far
+                dx = Math.max(20, Math.min(dx, simRect.width - pivotX - 20));
+                
+                // Convert visual pixels to meters
+                this.fixedDistance = dx / this.PIXELS_PER_METER;
+                
+                // 2. Calculate Angle based on Y
+                // dy is vertical distance from pivot. Positive dy means UP in physical world, so SUBTRACT mouseY from pivotY (screen Y grows down)
+                const dy = pivotY - mouseY; 
+                
+                // Angle = atan(dy / dx)
+                // Note: dy is relative to antenna horizontal plane.
+                let angleRad = Math.atan2(dy, dx);
+                let angleDeg = angleRad * (180 / Math.PI);
+                
+                // Clamp angle to valid simulation limits (-15 to 15 deg)
+                const sliderMin = parseFloat(this.dom.positionSlider.min);
+                const sliderMax = parseFloat(this.dom.positionSlider.max);
+                angleDeg = Math.max(sliderMin, Math.min(sliderMax, angleDeg));
+                
+                this.currentAngle = parseFloat(angleDeg.toFixed(2));
+                this.dom.positionSlider.value = this.currentAngle;
+                
+                if (this.dom.currentAngleDisplay) {
+                    this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle.toFixed(2)}°`;
+                }
+                this.updateMobilePosition(this.currentAngle, this.currentExperiment);
             },
             
             adjustAngle: function(delta) {
@@ -1669,12 +1746,12 @@
                 }
             },
 
-            updateMobilePosition: function(sliderValue, experimentType) {
+            updateMobilePosition: function(angle, experimentType) {
                 const simRect = this.dom.simulationDisplay.getBoundingClientRect();
-                const centerX = simRect.width / 2;
                 const antennaRealHeight = this.ANTENNA_REAL_HEIGHT;
+                
                 let mobileX, mobileY, mobileDistance, mobileHeight, mobileElevationAngleFromAntenna;
-                mobileDistance = this.fixedDistance;
+                
                 if (!experimentType) {
                     this.dom.mobileElement.style.display = 'none';
                     this.dom.mobileInfoBox.classList.add('hidden');
@@ -1683,30 +1760,43 @@
                 }
                 this.dom.mobileElement.style.display = 'block';
                 this.dom.mobileInfoBox.classList.remove('hidden');
+                
                 if (experimentType === 'exp3b') {
-                    mobileX = centerX;
-                    const minYVisual = simRect.height * this.MOBILE_VISUAL_MIN_Y_RATIO;
-                    const maxYVisual = simRect.height * this.MOBILE_VISUAL_MAX_Y_RATIO;
-                    const rangeYVisual = maxYVisual - minYVisual;
-                    const sliderMin = parseFloat(this.dom.positionSlider.min);
-                    const sliderMax = parseFloat(this.dom.positionSlider.max);
-                    mobileElevationAngleFromAntenna = sliderValue;
-                    const angleRad = mobileElevationAngleFromAntenna * Math.PI / 180;
+                    // Pivot for visual calculation (must match drag logic)
+                    const pivotX = simRect.width * 0.15;
+                    const pivotY = simRect.height * 0.5;
+
+                    // Calculate Visual Delta X and Delta Y
+                    // Horizontal Distance in pixels
+                    const dx = this.fixedDistance * this.PIXELS_PER_METER;
+                    
+                    // Vertical Distance in pixels
+                    // tan(angle) = dy / dx => dy = dx * tan(angle)
+                    // Angle in degrees to radians
+                    const angleRad = angle * (Math.PI / 180);
+                    const dy = dx * Math.tan(angleRad);
+                    
+                    mobileX = pivotX + dx;
+                    mobileY = pivotY - dy; // screen Y is inverted (up is negative)
+                    
+                    mobileElevationAngleFromAntenna = angle;
+                    mobileDistance = this.fixedDistance; // Horizontal distance
+                    
+                    // Real world height calculation for display info
+                    // h = h_tx + d * tan(theta)
                     mobileHeight = antennaRealHeight + mobileDistance * Math.tan(angleRad);
-                    const minRealHeight = antennaRealHeight + mobileDistance * Math.tan(sliderMin * Math.PI / 180);
-                    const maxRealHeight = antennaRealHeight + mobileDistance * Math.tan(sliderMax * Math.PI / 180);
-                    const realHeightRange = maxRealHeight - minRealHeight;
-                    const normalizedHeight = (mobileHeight - minRealHeight) / realHeightRange;
-                    mobileY = maxYVisual - (normalizedHeight * rangeYVisual);
-                    mobileY = Math.max(minYVisual, Math.min(maxYVisual, mobileY));
                 }
+                
                 this.dom.mobileElement.style.left = `${mobileX}px`;
                 this.dom.mobileElement.style.top = `${mobileY}px`;
                 this.dom.mobileElement.style.transform = `translate(-50%, -50%)`;
+                
                 const currentPr = this.getSimulatedPr(mobileElevationAngleFromAntenna, this.currentExperiment, this.randomTiltEnabled ? this.actualTilt : parseFloat(this.dom.tiltAngleInput.value));
+                
                 this.dom.mobileInfoAngle.textContent = `Ang(deg): ${mobileElevationAngleFromAntenna.toFixed(2)}`;
                 this.dom.mobileInfoDistanceHeight.textContent = `d:${mobileDistance.toFixed(1)}m,h:${mobileHeight.toFixed(1)}m`;
                 this.dom.mobileInfoPr.textContent = `Pr(dBm): ${currentPr.toFixed(4)}`;
+                
                 this.dom.mobileInfoBox.style.left = `${mobileX}px`;
                 this.dom.mobileInfoBox.style.top = `${mobileY}px`;
                 this.dom.mobileInfoBox.classList.remove('hidden');
@@ -1782,7 +1872,7 @@
                 doc.text("Experiment Inputs:", 10, yOffset);
                 yOffset += 8;
                 doc.setFontSize(12);
-                doc.text(`Distance (Dist): ${this.fixedDistance} m`, 10, yOffset);
+                doc.text(`Distance (Dist): ${this.fixedDistance.toFixed(1)} m`, 10, yOffset);
                 yOffset += 7;
                 doc.text(`Transmitted Power (Pt): ${this.dom.ptInput.value} dBm`, 10, yOffset);
                 yOffset += 7;
