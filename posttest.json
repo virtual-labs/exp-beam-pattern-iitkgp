@@ -1,0 +1,117 @@
+
+  {
+	  "version": 2.0,
+  "questions": [
+    {
+    "question": "1. What is the main lobe of an antenna's radiation pattern?",
+    "answers": {
+      "a": "The area with zero signal",
+      "b": "The direction of highest signal strength",
+      "c": "A small, secondary signal beam",
+      "d": "The physical base of the antenna"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "2. The '3dB beamwidth' is an angular measurement taken at which point?",
+    "answers": {
+      "a": "Where the signal strength is exactly 3 watts",
+      "b": "Where the signal strength drops to half its maximum power",
+      "c": "At the third sidelobe of the pattern",
+      "d": "At a distance of 3 meters from the antenna"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "3. What does the horizontal beam pattern of a base station antenna show?",
+    "answers": {
+      "a": "Signal coverage at different heights",
+      "b": "Signal coverage in the left-right (azimuth) plane",
+      "c": "The antenna's maximum data speed",
+      "d": "The signal strength at the antenna's base"
+    },
+    "correctAnswer": "b",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "4. The vertical beam pattern is used to study the signal's strength in which plane?",
+    "answers": {
+      "a": "The up-down (elevation) plane",
+      "b": "The 360-degree ground plane",
+      "c": "The plane parallel to the antenna's length",
+      "d": "The plane of polarization"
+    },
+    "correctAnswer": "a",
+    "difficulty": "beginner"
+  },
+  {
+    "question": "5. A base station antenna with a narrow horizontal beamwidth is often described as...?",
+    "answers": {
+      "a": "Omni-directional",
+      "b": "Directional or sectoral",
+      "c": "Isotropic",
+      "d": "Weak"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "6. What is 'antenna tilt' used to control?",
+    "answers": {
+      "a": "The frequency of the signal",
+      "b": "The vertical direction of the main beam",
+      "c": "The horizontal direction of the main beam",
+      "d": "The power consumption of the antenna"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "7. Calculating the beamwidth of the horizontal pattern helps to define what?",
+    "answers": {
+      "a": "How tall the antenna tower must be",
+      "b": "The width of the sector or area the antenna covers on the ground",
+      "c": "How far the signal travels upwards into the sky",
+      "d": "The signal's data capacity"
+    },
+    "correctAnswer": "b",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "8. Why is an antenna's vertical beam pattern studied?",
+    "answers": {
+      "a": "To aim the signal at users on the ground and avoid interference",
+      "b": "To see how wide the signal is in all directions",
+      "c": "To measure the antenna's physical tilt",
+      "d": "To determine the antenna's weight"
+    },
+    "correctAnswer": "a",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "9. A 'sidelobe' is generally considered...?",
+    "answers": {
+      "a": "The most important part of the beam",
+      "b": "A useful, secondary signal for extra coverage",
+      "c": "An undesired part of the pattern that can cause interference",
+      "d": "The main signal beam, but viewed from the side"
+    },
+    "correctAnswer": "c",
+    "difficulty": "intermediate"
+  },
+  {
+    "question": "10. What does a 'tilt angle' of zero degrees typically mean in a vertical pattern?",
+    "answers": {
+      "a": "The main beam is pointed straight up",
+      "b": "The main beam is pointed straight down",
+      "c": "The main beam is pointed at the horizon",
+      "d": "The antenna is turned off"
+    },
+    "correctAnswer": "c",
+    "difficulty": "intermediate"
+  }
+
+  ]
+}

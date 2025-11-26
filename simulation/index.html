@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Pattern Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px; 
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1400px; 
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background-color: #1a73e8; 
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        .header h1 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .content-area {
+            display: flex;
+            flex-direction: column; 
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+        .simulation-panel {
+            width: 1000px; 
+            flex-shrink: 0; 
+            flex-grow: 0; 
+            background-color: #f8f9fa; 
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .control-panel {
+            flex: 1; 
+            min-width: 250px; 
+            background-color: #f8f9fa; 
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .plot-canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            width: 100%; 
+            height: 400px; 
+            max-height: 400px;
+        }
+        .data-table-container {
+            overflow-x: auto; 
+            overflow-y: auto; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px;
+            width: 100%; 
+            height: 200px; 
+        }
+        .data-table {
+            border-collapse: collapse; 
+            width: 100%; 
+        }
+        .data-table th, .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center; 
+            white-space: nowrap; 
+            width: 45px; 
+        }
+        .data-table th:first-child, .data-table td:first-child {
+            text-align: left; 
+            position: sticky;
+            left: 0;
+            background-color: #edf2f7; 
+            z-index: 2; 
+            width: 100px; 
+        }
+        .data-table th {
+            background-color: #edf2f7; 
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .button-primary {
+            background-color: #1a73e8; 
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .button-primary:hover:not(:disabled) {
+            background-color: #1558b0;
+        }
+        .button-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .button-secondary:hover:not(:disabled) {
+            background-color: #c0c0c0;
+        }
+        .button-primary:disabled, .button-secondary:disabled {
+            background-color: #f5f5f5;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            border: 1px solid #e0e0e0;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* --- STYLES FOR EXP 3A (HORIZONTAL) --- */
+        #exp3a-simulation-display {
+            background-image: url('images/bg.png'); 
+            background-size: cover; 
+            background-position: center; 
+            position: relative;
+            overflow: hidden; 
+            width: 900px; 
+            max-width: 900px; 
+            height: 600px; 
+        }
+        #exp3a-mobile-tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            pointer-events: none; 
+            transform: translate(-50%, -120%); 
+            z-index: 30;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #exp3a-antenna {
+            position: absolute;
+            top: calc(50% - 287px); 
+            left: 50%;
+            transform: translateX(-50%);
+            height: 287px; 
+            width: auto;
+            z-index: 10;
+        }
+        #exp3a-mobile.mobile-fallback {
+            width: 40px; 
+            height: 40px;
+            background-color: #00008B; 
+            border-radius: 8px; 
+            position: absolute; 
+            z-index: 20;
+            transform: translate(-50%, -50%);
+        }
+        #exp3a-report-container {
+            display: none;
+            position: absolute;
+            left: -9999px;
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.5in;
+            background: #fff;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            color: #000;
+        }
+        .report-header-exp3a h1 { font-size: 12pt; font-weight: bold; margin: 0; }
+        .report-header-exp3a p { font-size: 11pt; margin: 2px 0; }
+        .report-datetime-exp3a p { font-size: 10pt; margin: 2px 0; }
+        .report-title-exp3a { text-align: left; margin: 20px 0; }
+        .report-title-exp3a h2 { color: #0000FF; font-size: 14pt; font-weight: bold; margin: 0 0 4px 0; }
+        .report-title-exp3a p { font-size: 11pt; margin: 0; }
+        .report-body-exp3a {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 10px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }
+        .report-left-col-exp3a { width: 38%; }
+        .report-right-col-exp3a { width: 60%; }
+        .report-data-table-exp3a { border-collapse: collapse; width: 100%; border: 2px solid #000; }
+        .report-data-table-exp3a th { background-color: #92D050; color: #000; font-weight: bold; font-size: 11pt; padding: 5px; border: 1px solid #000; text-align: center; }
+        .report-data-table-exp3a td { border: 1px solid #000; padding: 3px 5px; font-size: 9pt; text-align: right; }
+        .report-data-table-exp3a .header-row-exp3a td { background-color: #F0F0F0; font-weight: bold; text-align: center; }
+        .report-results-table-exp3a { border-collapse: collapse; width: 100%; border: 2px solid #000; margin-top: 10px; }
+        .report-results-table-exp3a td { border: 1px solid #000; padding: 4px 5px; font-size: 10pt; }
+        .report-results-table-exp3a .highlight-exp3a { background-color: #FFFF99; }
+        .report-graph-title-exp3a { font-size: 12pt; font-weight: bold; margin-bottom: 5px; text-align: center; }
+        .report-graph-exp3a { width: 100%; border: 1px solid #000; }
+        .report-discussion-exp3a { margin-top: 20px; font-size: 11pt; }
+        .report-discussion-exp3a strong { color: #0000FF; }
+        .report-footer-exp3a { position: absolute; bottom: 0.5in; width: 7.5in; }
+        .report-signatures-exp3a { display: flex; justify-content: space-between; font-size: 11pt; margin-top: 40px; }
+        .report-sig-line-exp3a { border-top: 1px solid #000; padding-top: 4px; width: 40%; }
+        
+        /* --- STYLES FOR EXP 3B (VERTICAL) --- */
+        #exp3b-slider-vertical-container {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            height: 80%;
+            justify-content: space-between;
+            z-index: 25;
+        }
+        #exp3b-slider-vertical-container input[type="range"] {
+            -webkit-appearance: slider-vertical;
+            appearance: slider-vertical;
+            width: 8px;
+            height: 100%;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            margin: 0;
+        }
+        #exp3b-slider-vertical-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #exp3b-slider-vertical-container input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #exp3b-simulation-display {
+            background-image: url('images/bg.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            width: 900px;
+            max-width: 900px;
+            height: 600px;
+        }
+        #exp3b-mobile-info-box {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            pointer-events: none;
+            transform: translate(-50%, -120%);
+            z-index: 30;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #exp3b-antenna {
+            position: absolute;
+            top: calc(50% - 66px);
+            left: 15%;
+            transform: translateX(-50%);
+            height: 287px;
+            width: auto;
+            z-index: 10;
+        }
+        #exp3b-htx-label {
+            position: absolute;
+            bottom: 11%;
+            left: calc(15% - 41px);
+            color: white;
+            font-size: 0.875rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            z-index: 15;
+        }
+        #exp3b-tilt-label-display {
+            position: absolute;
+            top: calc(50% - 42px);
+            left: calc(15% + 26px);
+            color: white;
+            font-size: 0.875rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            z-index: 15;
+        }
+        #exp3b-mobile {
+            cursor: grab; /* Indicates draggable item */
+        }
+        #exp3b-mobile:active {
+            cursor: grabbing;
+        }
+        #exp3b-mobile.mobile-fallback {
+             width: 40px; 
+            height: 40px;
+            background-color: #00008B; 
+            border-radius: 8px; 
+            position: absolute; 
+            z-index: 20;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div id="simulation-container" class="container">
+        <header class="header">
+            <h1></h1>
+            <h2 id="global-experiment-title" class="text-xl"></h2>
+        </header>
+
+        <div class="p-6 space-y-4 bg-gray-50 border-b border-gray-200">
+            <div id="welcome-message" class="text-lg font-semibold text-gray-800 hidden"></div>
+            <div id="global-exp-selection-panel" class="space-y-4 hidden">
+                <h3 class="text-lg font-semibold text-gray-800">Experiment Selection</h3>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="select-exp3a-button" class="button-primary flex-1">EXPT 3A: Horizontal Beam Pattern</button>
+                    <button id="select-exp3b-button" class="button-primary flex-1">EXPT 3B: Vertical Beam Pattern</button>
+                    <button id="global-reset-button" class="button-secondary">Reset All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <div id="exp3a-content-wrapper" class="hidden w-full">
+                <div class="flex flex-col lg:flex-row gap-6 w-full">
+                    <div id="exp3a-simulation-panel" class="simulation-panel flex flex-col items-center justify-center p-6 space-y-4">
+                        <div id="exp3a-simulation-display" class="relative w-full max-w-lg h-64 rounded-lg overflow-hidden flex items-center justify-center">
+                            <img id="exp3a-antenna" src="images/tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
+                            <img id="exp3a-mobile" class="absolute h-10 w-auto z-20" src="images/mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
+                            <div id="exp3a-mobile-tooltip" class="hidden"></div>
+                            <canvas id="exp3a-beam-pattern-drawing-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                        </div>
+                        <div class="flex items-center space-x-4 w-full max-w-md">
+                            <button id="exp3a-minus-button" class="button-secondary px-4 py-2 text-xl rounded-full">-</button>
+                            <input type="range" id="exp3a-position-slider" min="0" max="360" value="0" class="flex-grow">
+                            <button id="exp3a-plus-button" class="button-secondary px-4 py-2 text-xl rounded-full">+</button>
+                        </div>
+                        <p id="exp3a-current-angle-display" class="text-gray-700">Angle: 0°</p>
+                        <button id="exp3a-take-reading-button" class="button-primary w-full max-w-xs">Take Reading</button>
+                    </div>
+                    <div id="exp3a-control-panel" class="control-panel flex flex-col p-6 space-y-4">
+                        <div id="exp3a-exp-inputs" class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Experiment Inputs</h3>
+                            <div class="flex flex-col space-y-2 text-gray-700">
+                                <p id="exp3a-np-display-container">NP: <span id="exp3a-display-np">0</span></p>
+                                <div class="flex items-center space-x-2">
+                                    <label for="exp3a-dist-input" class="text-gray-700">Dist(m):</label>
+                                    <input type="number" id="exp3a-dist-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="400" step="10">
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <label for="exp3a-pt-input" class="text-gray-700">Pt(dBm):</label>
+                                    <input type="number" id="exp3a-pt-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="36" step="1">
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <label for="exp3a-np-input" class="text-gray-700">np:</label>
+                                    <input type="number" id="exp3a-np-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="4.5" step="0.1">
+                                </div>
+                                <p id="exp3a-pr-display-container">Pr(dBm): <span id="exp3a-display-pr-current">N/A</span></p>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="exp3a-beamwidth-input" class="text-gray-700">Enter Beam Width (deg):</label>
+                                <input type="number" id="exp3a-beamwidth-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 44.0" step="0.1">
+                            </div>
+                            <button id="exp3a-check-button" class="button-secondary w-full" disabled>Check</button>
+                            <button id="exp3a-new-submit-button" class="button-secondary w-full" disabled>Submit</button>
+                            <button id="exp3a-report-button" class="button-secondary w-full" disabled>Generate Report</button>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Power Received (dBm) vs. Angle (deg)</h3>
+                            <canvas id="exp3a-plot-canvas" class="plot-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="exp3a-data-table-container" class="data-table-container w-full">
+                    <table id="exp3a-data-table" class="data-table">
+                        <thead>
+                            <tr id="exp3a-reading-numbers-row">
+                                <th class="bg-gray-100">Reading #</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="exp3a-pr-values-row">
+                                <th class="bg-gray-100">Pr(dBm)</th>
+                            </tr>
+                            <tr id="exp3a-angle-values-row">
+                                <th class="bg-gray-100">Angle(deg)</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="exp3b-content-wrapper" class="hidden w-full">
+                <div class="flex flex-col lg:flex-row gap-6 w-full">
+                    <div id="exp3b-simulation-panel" class="simulation-panel flex flex-col items-center justify-center p-6 space-y-4">
+                        <div id="exp3b-simulation-display" class="relative w-full max-w-lg h-64 rounded-lg overflow-hidden flex items-center justify-center">
+                            <img id="exp3b-antenna" src="images/tower.png" alt="Base Station Antenna" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.style.backgroundColor='#cccccc'; this.style.border='1px solid #999999';">
+                            <img id="exp3b-mobile" class="absolute h-10 w-auto z-20" src="images/mobile.png" alt="Mobile Device" onerror="this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; this.classList.add('mobile-fallback');">
+                            <div id="exp3b-htx-label">hTx: 60.0m</div>
+                            <div id="exp3b-tilt-label-display">1.0deg Tilt</div>
+                            <div id="exp3b-mobile-info-box" class="hidden">
+                                <span id="exp3b-mobile-info-angle">Ang(deg): N/A</span>
+                                <span id="exp3b-mobile-info-distance-height">d:N/A,h:N/A</span>
+                                <span id="exp3b-mobile-info-pr">Pr(dBm): N/A</span>
+                            </div>
+                            <div id="exp3b-slider-vertical-container">
+                                <button id="exp3b-minus-button-vertical" class="button-secondary px-4 py-2 text-xl rounded-full">-</button>
+                                <input type="range" id="exp3b-position-slider" min="-15" max="15" value="0" step="0.01">
+                                <button id="exp3b-plus-button-vertical" class="button-secondary px-4 py-2 text-xl rounded-full">+</button>
+                            </div>
+                        </div>
+                        <p id="exp3b-current-angle-display" class="text-gray-700">Angle: 0°</p>
+                        <button id="exp3b-take-reading-button" class="button-primary w-full max-w-xs">Take Reading</button>
+                    </div>
+                    <div id="exp3b-control-panel" class="control-panel flex flex-col p-6 space-y-4">
+                         <div id="exp3b-exp-inputs" class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Experiment Inputs</h3>
+                            <div class="flex items-center space-x-2 text-gray-700">
+                                <label for="exp3b-np-input">np:</label>
+                                <input type="number" id="exp3b-np-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="4.5" step="0.1">
+                                <label for="exp3b-tilt-angle-input">Tilt:</label>
+                                <input type="number" id="exp3b-tilt-angle-input" class="w-20 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="0" step="0.1">
+                            </div>
+                            <label for="exp3b-random-tilt-checkbox" class="flex items-center space-x-2 text-gray-700">
+                                <input type="checkbox" id="exp3b-random-tilt-checkbox" class="rounded text-blue-600">
+                                <span>Random Tilt</span>
+                            </label>
+                            <div class="flex flex-col space-y-2 text-gray-700">
+                                <div class="flex items-center space-x-2">
+                                    <label for="exp3b-pt-input" class="text-gray-700">Pt(dBm):</label>
+                                    <input type="number" id="exp3b-pt-input" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="36" step="1">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="exp3b-beamwidth-input" class="text-gray-700">Enter Beam Width (deg):</label>
+                                <input type="number" id="exp3b-beamwidth-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 44.0" step="0.1">
+                            </div>
+                            <button id="exp3b-check-button" class="button-secondary w-full" disabled>Check</button>
+                            <button id="exp3b-submit-button" class="button-secondary w-full" disabled>Submit</button>
+                            <button id="exp3b-report-button" class="button-secondary w-full" disabled>Generate Report</button>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-lg font-semibold text-gray-800">Power Received (dBm) vs. Angle (deg)</h3>
+                            <canvas id="exp3b-plot-canvas" class="plot-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                 <div id="exp3b-data-table-container" class="data-table-container w-full">
+                    <table id="exp3b-data-table" class="data-table">
+                        <thead>
+                            <tr id="exp3b-reading-numbers-row">
+                                <th class="bg-gray-100">Reading #</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="exp3b-pr-values-row">
+                                <th class="bg-gray-100">Pr(dBm)</th>
+                            </tr>
+                            <tr id="exp3b-angle-values-row">
+                                <th class="bg-gray-100">Angle(deg)</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="name-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold mb-4">What is your name?</h3>
+            <input type="text" id="user-name-input" class="w-full p-3 border border-gray-300 rounded-md mb-4 focus:ring-blue-500 focus:border-blue-500" placeholder="Your Name">
+            <button id="ok-button" class="button-primary w-full">OK</button>
+        </div>
+    </div>
+
+    <div id="message-box" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="message-box-title" class="text-xl font-semibold mb-4">Information</h3>
+            <p id="message-box-text" class="text-gray-700 mb-6"></p>
+            <button id="message-box-ok-button" class="button-primary w-full">OK</button>
+        </div>
+    </div>
+
+    <div id="exp3a-report-container">
+        <div class="report-header-exp3a">
+            <h1>Fading Channels & Mobile Communications</h1>
+            <p>IIT Kharagpur</p>
+        </div>
+        <div class="report-datetime-exp3a">
+            <p>Date: <span id="exp3a-pdf-date"></span></p>
+            <p>Time: <span id="exp3a-pdf-time"></span></p>
+        </div>
+        <div class="report-title-exp3a">
+            <h2>Exp 3A: Horizontal Beam Pattern</h2>
+            <p>Name: <span id="exp3a-pdf-name">User Name</span></p>
+        </div>
+        <div class="report-body-exp3a">
+            <div class="report-left-col-exp3a">
+                <table class="report-data-table-exp3a">
+                    <thead>
+                        <tr><th colspan="2">Horizontal Beam Pattern</th></tr>
+                        <tr class="header-row-exp3a">
+                            <td>Pr(dBm)</td>
+                            <td>Angle(deg)</td>
+                        </tr>
+                    </thead>
+                    <tbody id="exp3a-pdf-data-table-body">
+                    </tbody>
+                </table>
+                <table class="report-results-table-exp3a">
+                    <tbody>
+                        <tr>
+                            <td></td>
+                            <td>Entered BW</td>
+                            <td>Actual BW</td>
+                        </tr>
+                        <tr class="highlight-exp3a">
+                            <td></td>
+                            <td id="exp3a-pdf-bw-entered"></td>
+                            <td id="exp3a-pdf-bw-actual"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="report-right-col-exp3a">
+                <div class="report-graph-title-exp3a">Power Recieved (dBm) vs. Angle (deg)</div>
+                <img id="exp3a-pdf-graph-img" src="" alt="Beam Pattern Plot" class="report-graph-exp3a">
+            </div>
+        </div>
+        <div class="report-discussion-exp3a">
+            <strong>DISCUSSION:</strong>
+            <p>Additional discussion about experiment can be added here....</p>
+        </div>
+        <div class="report-footer-exp3a">
+            <div class="report-signatures-exp3a">
+                <div class="report-sig-line-exp3a">(Signature of <span id="exp3a-pdf-sig-name">User</span>)</div>
+                <div class="report-sig-line-exp3a" style="text-align: right;">(Signature of Faculty)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL VARIABLES AND CONTROLLER ---
+        let userName = '';
+        const nameModal = document.getElementById('name-modal');
+        const userNameInput = document.getElementById('user-name-input');
+        const okButton = document.getElementById('ok-button');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const globalExpSelectionPanel = document.getElementById('global-exp-selection-panel');
+        const globalExperimentTitle = document.getElementById('global-experiment-title');
+
+        const messageBox = document.getElementById('message-box');
+        const messageBoxTitle = document.getElementById('message-box-title');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxOkButton = document.getElementById('message-box-ok-button');
+
+        const selectExp3aButton = document.getElementById('select-exp3a-button');
+        const selectExp3bButton = document.getElementById('select-exp3b-button');
+        const globalResetButton = document.getElementById('global-reset-button');
+
+        const exp3aContent = document.getElementById('exp3a-content-wrapper');
+        const exp3bContent = document.getElementById('exp3b-content-wrapper');
+
+        function showMessageBox(title, message) {
+            messageBoxTitle.textContent = title;
+            messageBoxText.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
+
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+        }
+
+        messageBoxOkButton.addEventListener('click', hideMessageBox);
+
+        // --- EXPERIMENT 3A (HORIZONTAL) LOGIC ---
+        const Experiment3A = {
+            // --- 3A Variables ---
+            currentExperiment: null, 
+            readings: [], 
+            maxReadings: 20,
+            currentAngle: 0,
+            referenceDistance: 400, 
+            L0_at_reference: 36 - (-78), 
+            isBeamwidthCorrect: false, 
+            checkButtonClicked: false, 
+            submitButtonClicked: false, 
+            reportButtonClicked: false, 
+
+            // --- 3A DOM Elements ---
+            dom: {},
+
+            // --- 3A Init Function ---
+            init: function() {
+                // Query all DOM elements and store them
+                this.dom.experimentTitle = globalExperimentTitle;
+                this.dom.simulationDisplay = document.getElementById('exp3a-simulation-display');
+                this.dom.mobileElement = document.getElementById('exp3a-mobile');
+                this.dom.mobileTooltip = document.getElementById('exp3a-mobile-tooltip');
+                this.dom.positionSlider = document.getElementById('exp3a-position-slider');
+                this.dom.minusButton = document.getElementById('exp3a-minus-button');
+                this.dom.plusButton = document.getElementById('exp3a-plus-button');
+                this.dom.currentAngleDisplay = document.getElementById('exp3a-current-angle-display');
+                this.dom.takeReadingButton = document.getElementById('exp3a-take-reading-button');
+                this.dom.readingNumbersRow = document.getElementById('exp3a-reading-numbers-row');
+                this.dom.prValuesRow = document.getElementById('exp3a-pr-values-row'); 
+                this.dom.angleValuesRow = document.getElementById('exp3a-angle-values-row');
+                this.dom.expInputs = document.getElementById('exp3a-exp-inputs');
+                this.dom.displayNp = document.getElementById('exp3a-display-np');
+                this.dom.distInput = document.getElementById('exp3a-dist-input'); 
+                this.dom.ptInput = document.getElementById('exp3a-pt-input');     
+                this.dom.npInput = document.getElementById('exp3a-np-input');     
+                this.dom.displayPrCurrent = document.getElementById('exp3a-display-pr-current'); 
+                this.dom.beamwidthInput = document.getElementById('exp3a-beamwidth-input');
+                this.dom.checkButton = document.getElementById('exp3a-check-button');
+                this.dom.newSubmitButton = document.getElementById('exp3a-new-submit-button');
+                this.dom.reportButton = document.getElementById('exp3a-report-button');
+                this.dom.plotCanvas = document.getElementById('exp3a-plot-canvas');
+                this.dom.plotCtx = this.dom.plotCanvas.getContext('2d');
+                this.dom.beamPatternDrawingCanvas = document.getElementById('exp3a-beam-pattern-drawing-canvas');
+                this.dom.beamPatternDrawingCtx = this.dom.beamPatternDrawingCanvas.getContext('2d');
+                this.dom.npDisplayContainer = document.getElementById('exp3a-np-display-container');
+                this.dom.prDisplayContainer = document.getElementById('exp3a-pr-display-container');
+                
+                // Attach Event Listeners
+                this.dom.positionSlider.addEventListener('input', (e) => this.onSliderInput(e));
+                this.dom.minusButton.addEventListener('click', () => this.adjustAngle(-1));
+                this.dom.plusButton.addEventListener('click', () => this.adjustAngle(1));
+                this.dom.takeReadingButton.addEventListener('click', () => this.handleTakeReading());
+                this.dom.distInput.addEventListener('input', () => this.onParamInput());
+                this.dom.ptInput.addEventListener('input', () => this.onParamInput());
+                this.dom.npInput.addEventListener('input', () => this.onParamInput());
+                this.dom.beamwidthInput.addEventListener('input', () => this.onBeamwidthInput());
+                this.dom.checkButton.addEventListener('click', () => this.handleCheck());
+                this.dom.newSubmitButton.addEventListener('click', () => this.handleSubmit());
+                this.dom.reportButton.addEventListener('click', () => this.handleReport());
+                window.addEventListener('resize', () => this.resizeAllCanvases());
+            },
+            
+            // --- 3A Methods ---
+            selectExperiment: function() {
+                this.currentExperiment = 'exp3a';
+                this.readings = [];
+                this.initializeDataTable();
+                
+                this.dom.positionSlider.value = 0;
+                this.currentAngle = 0;
+                this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle}°`;
+                this.dom.expInputs.classList.remove('hidden');
+                this.dom.mobileTooltip.classList.add('hidden');
+                this.dom.beamwidthInput.value = '';
+                this.isBeamwidthCorrect = false;
+                this.checkButtonClicked = false;
+                this.submitButtonClicked = false;
+                this.reportButtonClicked = false;
+                this.dom.displayNp.textContent = this.readings.length;
+                this.dom.distInput.disabled = false;
+                this.dom.displayPrCurrent.textContent = 'N/A';
+                this.dom.experimentTitle.textContent = 'EXPT 3A: Horizontal Beam Pattern';
+                this.dom.positionSlider.min = -180;
+                this.dom.positionSlider.max = 180;
+                this.dom.npDisplayContainer.classList.add('hidden');
+                this.dom.prDisplayContainer.classList.add('hidden');
+                
+                this.updateMobilePosition(this.currentAngle);
+                this.drawPolarPlot(this.readings);
+                this.drawSimulationBeamPattern();
+                this.updateButtonStates();
+                this.resizeAllCanvases();
+            },
+
+            onSliderInput: function(event) {
+                this.currentAngle = parseFloat(event.target.value);
+                this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle}°`;
+                if (this.currentExperiment) {
+                    this.updateMobilePosition(this.currentAngle);
+                }
+            },
+            
+            adjustAngle: function(delta) {
+                let newAngle = this.currentAngle + delta;
+                newAngle = Math.max(-180, Math.min(180, newAngle));
+                this.currentAngle = newAngle;
+                this.dom.positionSlider.value = this.currentAngle;
+                this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle}°`;
+                if (this.currentExperiment) {
+                    this.updateMobilePosition(this.currentAngle);
+                }
+            },
+
+            onParamInput: function() {
+                if (this.currentExperiment === 'exp3a') {
+                     this.drawSimulationBeamPattern();
+                     this.updateMobilePosition(this.currentAngle);
+                }
+            },
+            
+            onBeamwidthInput: function() {
+                this.isBeamwidthCorrect = false;
+                this.submitButtonClicked = false;
+                this.reportButtonClicked = false;
+                this.updateButtonStates(); 
+            },
+
+            handleTakeReading: function() {
+                if (!this.currentExperiment) {
+                    showMessageBox('Error', 'Please select the experiment first.');
+                    return;
+                }
+                if (this.readings.length >= this.maxReadings) {
+                    showMessageBox('Limit Reached', `You have taken ${this.maxReadings} readings. Please submit or reset.`);
+                    return;
+                }
+                if (this.readings.length === 0) {
+                    this.dom.distInput.disabled = true;
+                }
+                const currentPr = this.getSimulatedPr(this.currentAngle);
+                this.readings.push({ pr: currentPr, angle: this.currentAngle });
+                this.dom.displayNp.textContent = this.readings.length;
+                const readingIndex = this.readings.length;
+                const prCellToUpdate = this.dom.prValuesRow.children[readingIndex];
+                const angleCellToUpdate = this.dom.angleValuesRow.children[readingIndex];
+                if (prCellToUpdate && angleCellToUpdate) {
+                    prCellToUpdate.textContent = currentPr.toFixed(2);
+                    angleCellToUpdate.textContent = this.currentAngle.toFixed(1);
+                } else {
+                    console.error("Error: Table cell does not exist.");
+                }
+                this.drawPolarPlot(this.readings);
+                this.updateButtonStates();
+            },
+            
+            handleCheck: function() {
+                if (this.dom.checkButton.disabled) return; 
+                if (this.readings.length === 0) {
+                    showMessageBox('Error', 'Please take some readings before checking.');
+                    return;
+                }
+                this.checkButtonClicked = true;
+                const calculatedActualBeamwidth = this.calculateDynamicBeamwidth(this.readings);
+                const enteredBeamwidth = parseFloat(this.dom.beamwidthInput.value);
+                let message = '';
+                this.isBeamwidthCorrect = false;
+                if (!isNaN(enteredBeamwidth) && Math.abs(enteredBeamwidth - calculatedActualBeamwidth) < 0.5) {
+                    message = `Your entered beamwidth (${enteredBeamwidth} deg) is correct! Actual Beamwidth: ${calculatedActualBeamwidth.toFixed(2)} deg.`;
+                    this.isBeamwidthCorrect = true;
+                } else {
+                    message = `Your entered beamwidth (${enteredBeamwidth || 'N/A'} deg) is incorrect. Actual Beamwidth: ${calculatedActualBeamwidth.toFixed(2)} deg.`;
+                }
+                showMessageBox('Check Result', message);
+                this.updateButtonStates();
+            },
+
+            handleSubmit: function() {
+                if (this.dom.newSubmitButton.disabled) return; 
+                if (this.readings.length === 0) {
+                    showMessageBox('Error', 'Please take some readings before submitting.');
+                    return;
+                }
+                this.submitButtonClicked = true;
+                const calculatedActualBeamwidth = this.calculateDynamicBeamwidth(this.readings);
+                const enteredBeamwidth = parseFloat(this.dom.beamwidthInput.value);
+                if (!isNaN(enteredBeamwidth) && Math.abs(enteredBeamwidth - calculatedActualBeamwidth) < 0.5) {
+                    this.isBeamwidthCorrect = true;
+                } else {
+                    this.isBeamwidthCorrect = false;
+                }
+                showMessageBox('Submission Recorded', 'Your value has been recorded. You can now generate the report.');
+                this.updateButtonStates();
+            },
+
+            handleReport: function() {
+                if (this.dom.reportButton.disabled) return; 
+                this.reportButtonClicked = true;
+                this.updateButtonStates(); 
+                this.generateReportPdf();
+            },
+
+            getSimulatedPr: function(angle) {
+                const currentPt = parseFloat(this.dom.ptInput.value);
+                const currentNp = parseFloat(this.dom.npInput.value);
+                const currentDistance = parseFloat(this.dom.distInput.value);
+                if (isNaN(currentPt) || isNaN(currentNp) || isNaN(currentDistance) || currentDistance <= 0) {
+                    return -200; 
+                }
+                let pathLoss = this.L0_at_reference; 
+                if (currentDistance !== this.referenceDistance) {
+                    pathLoss += 10 * currentNp * Math.log10(currentDistance / this.referenceDistance);
+                }
+                let basePr = currentPt - pathLoss;
+                let effectiveAngle = (angle + 180 + 360) % 360 - 180;
+                const maxAngularAttenuation = 30; 
+                let attenuationFactor;
+                const angleAbs = Math.abs(effectiveAngle);
+                if (angleAbs <= 15) { 
+                    attenuationFactor = 0.05 * (angleAbs / 15);
+                } else if (angleAbs <= 45) { 
+                    attenuationFactor = 0.05 + 0.5 * ((angleAbs - 15) / 30);
+                } else { 
+                    attenuationFactor = 0.55 + 0.45 * ((angleAbs - 45) / 135);
+                }
+                let angularAttenuation = maxAngularAttenuation * attenuationFactor;
+                let finalPr = basePr - angularAttenuation;
+                finalPr += (Math.random() * 2 - 1) * 0.5; 
+                return parseFloat(finalPr.toFixed(2));
+            },
+
+            calculateDynamicBeamwidth: function(data) {
+                if (data.length < 3) return 0;
+                let maxPr = -Infinity;
+                let maxPrIndex = -1;
+                const sortedData = [...data].sort((a, b) => a.angle - b.angle);
+                sortedData.forEach((reading, index) => {
+                    if (reading.pr > maxPr) {
+                        maxPr = reading.pr;
+                        maxPrIndex = index;
+                    }
+                });
+                const thresholdPr = maxPr - 3; 
+                let left3dBAngle = null;
+                let right3dBAngle = null;
+                for (let i = maxPrIndex; i >= 0; i--) {
+                    if (sortedData[i].pr <= thresholdPr) {
+                        if (i + 1 < sortedData.length && sortedData[i+1].pr > thresholdPr) {
+                            const p1 = sortedData[i];
+                            const p2 = sortedData[i+1];
+                            left3dBAngle = p1.angle + (p2.angle - p1.angle) * ((thresholdPr - p1.pr) / (p2.pr - p1.pr));
+                        } else {
+                            left3dBAngle = sortedData[i].angle;
+                        }
+                        break;
+                    }
+                }
+                for (let i = maxPrIndex; i < sortedData.length; i++) {
+                    if (sortedData[i].pr <= thresholdPr) {
+                        if (i - 1 >= 0 && sortedData[i-1].pr > thresholdPr) {
+                            const p1 = sortedData[i-1];
+                            const p2 = sortedData[i];
+                            right3dBAngle = p1.angle + (p2.angle - p1.angle) * ((thresholdPr - p1.pr) / (p2.pr - p1.pr));
+                        } else {
+                            right3dBAngle = sortedData[i].angle;
+                        }
+                        break;
+                    }
+                }
+                if (left3dBAngle !== null && right3dBAngle !== null) {
+                    let beamwidth = Math.abs(right3dBAngle - left3dBAngle);
+                    if (beamwidth > 180) { 
+                        beamwidth = 360 - beamwidth;
+                    }
+                    return parseFloat(beamwidth.toFixed(2));
+                }
+                return 0; 
+            },
+
+            drawPolarPlot: function(data) {
+                const canvas = this.dom.plotCanvas;
+                const ctx = this.dom.plotCtx;
+                if (!canvas) return;
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(centerX, centerY) * 0.8;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                for (let i = 1; i <= 4; i++) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius * i / 4, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+                for (let i = -180; i <= 180; i += 45) {
+                    const angleRad = (i - 90) * Math.PI / 180;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + radius * Math.cos(angleRad), centerY + radius * Math.sin(angleRad));
+                    ctx.stroke();
+                    const labelRadius = radius * 1.1;
+                    const labelX = centerX + labelRadius * Math.cos(angleRad);
+                    const labelY = centerY + labelRadius * Math.sin(angleRad);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(i + '°', labelX, labelY);
+                }
+                const minDb = -100;
+                const maxDb = -70;
+                const dbRange = maxDb - minDb;
+                ctx.fillStyle = '#666';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                for (let i = 0; i <= 4; i++) {
+                    const currentDb = minDb + (dbRange * i / 4);
+                    const currentRadius = radius * i / 4;
+                    if (i > 0) {
+                        ctx.fillText(currentDb.toFixed(0) + 'dBm', centerX + currentRadius + 15, centerY);
+                    }
+                }
+                const mapPrToRadius = (pr) => {
+                    const clampedPr = Math.max(minDb, Math.min(maxDb, pr));
+                    const normalizedPr = (clampedPr - minDb) / dbRange;
+                    return normalizedPr * radius;
+                };
+                if (data.length > 0) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#FF0000'; 
+                    ctx.lineWidth = 2;
+                    const sortedData = [...data].sort((a, b) => a.angle - b.angle);
+                    sortedData.forEach((point, index) => {
+                        const r = mapPrToRadius(point.pr);
+                        const angleRad = (point.angle - 90) * Math.PI / 180;
+                        const x = centerX + r * Math.cos(angleRad);
+                        const y = centerY + r * Math.sin(angleRad);
+                        if (index === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                }
+                if (data.length > 0) {
+                    const lastRecordedPoint = data[data.length - 1];
+                    const r = mapPrToRadius(lastRecordedPoint.pr);
+                    const angleRad = (lastRecordedPoint.angle - 90) * Math.PI / 180;
+                    const x = centerX + r * Math.cos(angleRad);
+                    const y = centerY + r * Math.sin(angleRad);
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#FF0000';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([]);
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
+            },
+
+            drawSimulationBeamPattern: function() {
+                const canvas = this.dom.beamPatternDrawingCanvas;
+                const ctx = this.dom.beamPatternDrawingCtx;
+                if (!canvas) return;
+                const simRect = this.dom.simulationDisplay.getBoundingClientRect();
+                canvas.width = simRect.width;
+                canvas.height = simRect.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const centerX = canvas.width / 2;
+                const centerY = simRect.height / 2; 
+                const currentDistance = parseFloat(this.dom.distInput.value);
+                const baseOrbitRadius = Math.min(simRect.width / 2, simRect.height / 2) * 0.8;
+                let scaledOrbitRadius = baseOrbitRadius;
+                if (!isNaN(currentDistance) && currentDistance > 0) {
+                    scaledOrbitRadius = baseOrbitRadius * (currentDistance / this.referenceDistance);
+                    scaledOrbitRadius = Math.max(baseOrbitRadius * 0.3, Math.min(baseOrbitRadius * 1.5, scaledOrbitRadius));
+                }
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                const rx = scaledOrbitRadius;
+                const ry = scaledOrbitRadius * 0.3;
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, rx, ry, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+            },
+
+            updateMobilePosition: function(angle) {
+                const simRect = this.dom.simulationDisplay.getBoundingClientRect();
+                const centerX = simRect.width / 2;
+                const centerY = simRect.height / 2;
+                const currentDistance = parseFloat(this.dom.distInput.value);
+                const baseOrbitRadius = Math.min(centerX, centerY) * 0.8;
+                let scaledOrbitRadius = baseOrbitRadius;
+                if (!isNaN(currentDistance) && currentDistance > 0) {
+                    scaledOrbitRadius = baseOrbitRadius * (currentDistance / this.referenceDistance);
+                    scaledOrbitRadius = Math.max(baseOrbitRadius * 0.3, Math.min(baseOrbitRadius * 1.5, scaledOrbitRadius));
+                }
+                const rx = scaledOrbitRadius;
+                const ry = scaledOrbitRadius * 0.3;
+                const angleRad = (angle - 90) * Math.PI / 180;
+                let mobileX = centerX + rx * Math.cos(angleRad);
+                let mobileY = centerY + ry * Math.sin(angleRad);
+                this.dom.mobileElement.style.left = `${mobileX}px`;
+                this.dom.mobileElement.style.top = `${mobileY}px`;
+                this.dom.mobileElement.style.transform = `translate(-50%, -50%)`;
+                const currentPr = this.getSimulatedPr(this.currentAngle);
+                this.dom.mobileTooltip.innerHTML = `Pr(dBm): ${currentPr.toFixed(2)}<br>Deg: ${this.currentAngle.toFixed(1)}`;
+                this.dom.mobileTooltip.style.left = `${mobileX}px`;
+                this.dom.mobileTooltip.style.top = `${mobileY}px`;
+                this.dom.mobileTooltip.classList.remove('hidden');
+                this.dom.displayPrCurrent.textContent = currentPr.toFixed(2);
+            },
+
+            resizeAllCanvases: function() {
+                if (this.currentExperiment !== 'exp3a') return;
+                try {
+                    const plotDisplayRect = this.dom.plotCanvas.parentElement.getBoundingClientRect();
+                    this.dom.plotCanvas.width = plotDisplayRect.width;
+                    this.dom.plotCanvas.height = plotDisplayRect.height;
+                    this.drawPolarPlot(this.readings);
+                    this.drawSimulationBeamPattern();
+                    this.updateMobilePosition(this.currentAngle);
+                } catch (e) {
+                    // Cavas might not be ready, ignore
+                }
+            },
+
+            initializeDataTable: function() {
+                while (this.dom.readingNumbersRow.children.length > 1) this.dom.readingNumbersRow.removeChild(this.dom.readingNumbersRow.lastChild);
+                while (this.dom.prValuesRow.children.length > 1) this.dom.prValuesRow.removeChild(this.dom.prValuesRow.lastChild);
+                while (this.dom.angleValuesRow.children.length > 1) this.dom.angleValuesRow.removeChild(this.dom.angleValuesRow.lastChild);
+                for (let i = 1; i <= this.maxReadings; i++) {
+                    const numHeader = document.createElement('th');
+                    numHeader.textContent = i;
+                    numHeader.classList.add('bg-gray-100');
+                    this.dom.readingNumbersRow.appendChild(numHeader);
+                    const prCell = document.createElement('td');
+                    prCell.textContent = '-';
+                    this.dom.prValuesRow.appendChild(prCell);
+                    const angleCell = document.createElement('td');
+                    angleCell.textContent = '-';
+                    this.dom.angleValuesRow.appendChild(angleCell);
+                }
+            },
+
+            updateButtonStates: function() {
+                if (this.readings.length === this.maxReadings) {
+                    this.dom.checkButton.disabled = false;
+                    if (this.checkButtonClicked) { 
+                        this.dom.checkButton.classList.add('button-secondary');
+                        this.dom.checkButton.classList.remove('button-primary');
+                    } else { 
+                        this.dom.checkButton.classList.add('button-primary');
+                        this.dom.checkButton.classList.remove('button-secondary');
+                    }
+                } else { 
+                    this.dom.checkButton.disabled = true;
+                    this.dom.checkButton.classList.add('button-secondary');
+                    this.dom.checkButton.classList.remove('button-primary');
+                }
+                if (this.checkButtonClicked) {
+                    this.dom.newSubmitButton.disabled = false;
+                    if (this.submitButtonClicked) { 
+                        this.dom.newSubmitButton.classList.add('button-secondary');
+                        this.dom.newSubmitButton.classList.remove('button-primary');
+                    } else { 
+                        this.dom.newSubmitButton.classList.add('button-primary');
+                        this.dom.newSubmitButton.classList.remove('button-secondary');
+                    }
+                } else { 
+                    this.dom.newSubmitButton.disabled = true;
+                    this.dom.newSubmitButton.classList.add('button-secondary');
+                    this.dom.newSubmitButton.classList.remove('button-primary');
+                }
+                if (this.submitButtonClicked) {
+                    this.dom.reportButton.disabled = false;
+                    if (this.reportButtonClicked) { 
+                        this.dom.reportButton.classList.add('button-secondary');
+                        this.dom.reportButton.classList.remove('button-primary');
+                    } else { 
+                        this.dom.reportButton.classList.add('button-primary');
+                        this.dom.reportButton.classList.remove('button-secondary');
+                    }
+                } else { 
+                    this.dom.reportButton.disabled = true;
+                    this.dom.reportButton.classList.add('button-secondary');
+                    this.dom.reportButton.classList.remove('button-primary');
+                }
+            },
+
+            generateReportPdf: async function() {
+                if (this.readings.length === 0) {
+                    showMessageBox('Error', 'Please take readings before generating a report.');
+                    return;
+                }
+                showMessageBox('Generating Report', 'Please wait, your report is being generated...');
+                const { jsPDF } = window.jspdf;
+                const reportContainer = document.getElementById('exp3a-report-container');
+                const now = new Date();
+                document.getElementById('exp3a-pdf-date').textContent = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                document.getElementById('exp3a-pdf-time').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('exp3a-pdf-name').textContent = userName || 'N/A';
+                document.getElementById('exp3a-pdf-sig-name').textContent = userName || 'N/A';
+                const tableBody = document.getElementById('exp3a-pdf-data-table-body');
+                tableBody.innerHTML = ''; 
+                for (let i = 0; i < 20; i++) {
+                    const r = this.readings[i];
+                    const row = document.createElement('tr');
+                    if (r) {
+                        row.innerHTML = `<td>${r.pr.toFixed(2)}</td><td>${r.angle.toFixed(1)}</td>`;
+                    } else {
+                        row.innerHTML = `<td>&nbsp;</td><td>&nbsp;</td>`; 
+                    }
+                    tableBody.appendChild(row);
+                }
+                const calculatedBeamwidth = this.calculateDynamicBeamwidth(this.readings);
+                const enteredBeamwidth = parseFloat(this.dom.beamwidthInput.value);
+                document.getElementById('exp3a-pdf-bw-entered').textContent = isNaN(enteredBeamwidth) ? 'N/A' : enteredBeamwidth.toFixed(2) + ' deg';
+                document.getElementById('exp3a-pdf-bw-actual').textContent = calculatedBeamwidth.toFixed(2) + ' deg';
+                const graphImg = document.getElementById('exp3a-pdf-graph-img');
+                if (this.dom.plotCanvas) {
+                    graphImg.src = this.dom.plotCanvas.toDataURL('image/png', 1.0);
+                } else {
+                    graphImg.src = ''; 
+                }
+                reportContainer.style.display = 'block';
+                try {
+                    const canvas = await html2canvas(reportContainer, {
+                        scale: 2, 
+                        useCORS: true,
+                        logging: false,
+                        windowWidth: reportContainer.scrollWidth,
+                        windowHeight: reportContainer.scrollHeight
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'pt', 'letter');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+                    const fileName = `Exp3A_Report_${userName.replace(/\s+/g, '_') || 'Guest'}.pdf`;
+                    pdf.save(fileName);
+                    reportContainer.style.display = 'none';
+                    hideMessageBox();
+                    showMessageBox('Report Generated', 'Your PDF report has been generated and downloaded.');
+                } catch (err) {
+                    console.error("Error generating PDF:", err);
+                    reportContainer.style.display = 'none'; 
+                    hideMessageBox();
+                    showMessageBox('Error', 'Could not generate PDF report. See console for details.');
+                }
+            }
+        };
+
+        // --- EXPERIMENT 3B (VERTICAL) LOGIC ---
+        const Experiment3B = {
+            // --- 3B Variables ---
+            currentExperiment: null,
+            readings: [],
+            theoreticalData: [],
+            maxReadings: 20,
+            currentAngle: 0,
+            randomTiltEnabled: false,
+            actualTilt: 0,
+            fixedDistance: 574.0, // This is now variable/state based on drag
+            referenceDistance: 400,
+            L0_at_reference: 36 - (-78),
+            isBeamwidthCorrect: false,
+            ANTENNA_REAL_HEIGHT: 60,
+            MOBILE_VISUAL_MIN_Y_RATIO: 0.1,
+            MOBILE_VISUAL_MAX_Y_RATIO: 0.9,
+            PIXELS_PER_METER: 0.55,
+            isDragging: false,
+            
+            // --- 3B DOM Elements ---
+            dom: {},
+
+            // --- 3B Init Function ---
+            init: function() {
+                // Query all DOM elements and store them
+                this.dom.experimentTitle = globalExperimentTitle;
+                this.dom.simulationDisplay = document.getElementById('exp3b-simulation-display');
+                this.dom.antennaElement = document.getElementById('exp3b-antenna');
+                this.dom.mobileElement = document.getElementById('exp3b-mobile');
+                this.dom.mobileInfoBox = document.getElementById('exp3b-mobile-info-box');
+                this.dom.mobileInfoAngle = document.getElementById('exp3b-mobile-info-angle');
+                this.dom.mobileInfoDistanceHeight = document.getElementById('exp3b-mobile-info-distance-height');
+                this.dom.mobileInfoPr = document.getElementById('exp3b-mobile-info-pr');
+                this.dom.htxLabel = document.getElementById('exp3b-htx-label');
+                this.dom.tiltLabelDisplay = document.getElementById('exp3b-tilt-label-display');
+                this.dom.sliderVerticalContainer = document.getElementById('exp3b-slider-vertical-container');
+                this.dom.positionSlider = document.getElementById('exp3b-position-slider');
+                this.dom.plusButtonVertical = document.getElementById('exp3b-plus-button-vertical');
+                this.dom.minusButtonVertical = document.getElementById('exp3b-minus-button-vertical');
+                this.dom.currentAngleDisplay = document.getElementById('exp3b-current-angle-display');
+                this.dom.takeReadingButton = document.getElementById('exp3b-take-reading-button');
+                this.dom.readingNumbersRow = document.getElementById('exp3b-reading-numbers-row');
+                this.dom.prValuesRow = document.getElementById('exp3b-pr-values-row');
+                this.dom.angleValuesRow = document.getElementById('exp3b-angle-values-row');
+                this.dom.expInputs = document.getElementById('exp3b-exp-inputs');
+                this.dom.ptInput = document.getElementById('exp3b-pt-input');
+                this.dom.npInput = document.getElementById('exp3b-np-input');
+                this.dom.randomTiltCheckbox = document.getElementById('exp3b-random-tilt-checkbox');
+                this.dom.tiltAngleInput = document.getElementById('exp3b-tilt-angle-input');
+                this.dom.beamwidthInput = document.getElementById('exp3b-beamwidth-input');
+                this.dom.checkButton = document.getElementById('exp3b-check-button');
+                this.dom.submitButton = document.getElementById('exp3b-submit-button');
+                this.dom.reportButton = document.getElementById('exp3b-report-button');
+                this.dom.plotCanvas = document.getElementById('exp3b-plot-canvas');
+                this.dom.plotCtx = this.dom.plotCanvas.getContext('2d');
+
+                // Attach Event Listeners
+                this.dom.positionSlider.addEventListener('input', (e) => this.onPositionSliderInput(e));
+                this.dom.plusButtonVertical.addEventListener('click', () => this.adjustAngle(0.01));
+                this.dom.minusButtonVertical.addEventListener('click', () => this.adjustAngle(-0.01));
+                this.dom.takeReadingButton.addEventListener('click', () => this.handleTakeReading());
+                this.dom.randomTiltCheckbox.addEventListener('change', (e) => this.onTiltCheckboxChange(e));
+                this.dom.tiltAngleInput.addEventListener('input', (e) => this.onTiltInputChange(e));
+                this.dom.ptInput.addEventListener('input', () => this.onParamInput());
+                this.dom.npInput.addEventListener('input', () => this.onParamInput());
+                this.dom.beamwidthInput.addEventListener('input', () => this.onBeamwidthInput());
+                this.dom.checkButton.addEventListener('click', () => this.handleCheck());
+                this.dom.submitButton.addEventListener('click', () => this.handleSubmit());
+                this.dom.reportButton.addEventListener('click', () => this.generateReportPdf());
+                window.addEventListener('resize', () => this.resizeAllCanvases());
+
+                // --- Drag Logic ---
+                this.dom.mobileElement.addEventListener('mousedown', (e) => this.startDrag(e));
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', () => this.stopDrag());
+            },
+
+            // --- 3B Methods ---
+            selectExperiment: function() {
+                this.currentExperiment = 'exp3b';
+                this.readings = [];
+                this.dom.positionSlider.value = 0;
+                this.currentAngle = 0;
+                // Reset fixed distance
+                this.fixedDistance = 574.0;
+                
+                if (this.dom.currentAngleDisplay) {
+                    this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle}°`;
+                }
+                this.dom.expInputs.classList.remove('hidden');
+                this.dom.mobileInfoBox.classList.add('hidden');
+                this.dom.beamwidthInput.value = '';
+                
+                this.isBeamwidthCorrect = false;
+                this.dom.checkButton.disabled = true;
+                this.dom.checkButton.classList.add('button-secondary');
+                this.dom.checkButton.classList.remove('button-primary');
+                this.dom.submitButton.disabled = true;
+                this.dom.submitButton.classList.add('button-secondary');
+                this.dom.submitButton.classList.remove('button-primary');
+                this.dom.reportButton.disabled = true;
+                this.dom.reportButton.classList.add('button-secondary');
+                this.dom.reportButton.classList.remove('button-primary');
+                this.dom.takeReadingButton.disabled = false;
+                
+                this.dom.experimentTitle.textContent = 'EXPT 3B: Vertical Beam Pattern';
+                this.dom.positionSlider.min = -15;
+                this.dom.positionSlider.max = 15;
+                this.dom.positionSlider.step = 0.01;
+                this.dom.sliderVerticalContainer.classList.remove('hidden');
+                this.dom.randomTiltCheckbox.checked = true;
+                this.randomTiltEnabled = true;
+                this.actualTilt = parseFloat((Math.random() * 20 - 10).toFixed(1));
+                this.dom.tiltAngleInput.value = this.actualTilt;
+                this.dom.tiltAngleInput.disabled = true;
+                this.dom.htxLabel.textContent = `hTx: ${this.ANTENNA_REAL_HEIGHT.toFixed(1)}m`;
+                this.dom.htxLabel.classList.remove('hidden');
+                this.dom.tiltLabelDisplay.textContent = `${this.actualTilt.toFixed(1)}deg Tilt`;
+                this.dom.tiltLabelDisplay.classList.remove('hidden');
+                
+                this.initializeDataTable();
+                this.updatePlotAndTheoreticalCurve();
+                this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                this.resizeAllCanvases();
+            },
+
+            onPositionSliderInput: function(event) {
+                this.currentAngle = parseFloat(event.target.value);
+                if (this.dom.currentAngleDisplay) {
+                    this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle.toFixed(2)}°`;
+                }
+                if (this.currentExperiment) {
+                    this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                }
+            },
+
+            // --- Drag Functionality ---
+            startDrag: function(e) {
+                if (this.currentExperiment !== 'exp3b') return;
+                this.isDragging = true;
+                this.dom.mobileElement.style.cursor = 'grabbing';
+                e.preventDefault(); 
+            },
+
+            stopDrag: function() {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.dom.mobileElement.style.cursor = 'grab';
+                }
+            },
+
+            drag: function(e) {
+                if (!this.isDragging) return;
+                
+                const simRect = this.dom.simulationDisplay.getBoundingClientRect();
+                
+                // --- Coordinate System ---
+                // Pivot point is defined visually where the antenna radiation center is.
+                // Based on layout: Antenna is at left 15% (approx 135px if width 900)
+                // Antenna vertical center is roughly middle (50% height).
+                const pivotX = simRect.width * 0.15;
+                const pivotY = simRect.height * 0.5;
+
+                const mouseX = e.clientX - simRect.left; 
+                const mouseY = e.clientY - simRect.top;
+                
+                // 1. Calculate Horizontal Distance
+                let dx = mouseX - pivotX;
+                // Clamp X to avoid going behind antenna or too far
+                dx = Math.max(20, Math.min(dx, simRect.width - pivotX - 20));
+                
+                // Convert visual pixels to meters
+                this.fixedDistance = dx / this.PIXELS_PER_METER;
+                
+                // 2. Calculate Angle based on Y
+                // dy is vertical distance from pivot. Positive dy means UP in physical world, so SUBTRACT mouseY from pivotY (screen Y grows down)
+                const dy = pivotY - mouseY; 
+                
+                // Angle = atan(dy / dx)
+                // Note: dy is relative to antenna horizontal plane.
+                let angleRad = Math.atan2(dy, dx);
+                let angleDeg = angleRad * (180 / Math.PI);
+                
+                // Clamp angle to valid simulation limits (-15 to 15 deg)
+                const sliderMin = parseFloat(this.dom.positionSlider.min);
+                const sliderMax = parseFloat(this.dom.positionSlider.max);
+                angleDeg = Math.max(sliderMin, Math.min(sliderMax, angleDeg));
+                
+                this.currentAngle = parseFloat(angleDeg.toFixed(2));
+                this.dom.positionSlider.value = this.currentAngle;
+                
+                if (this.dom.currentAngleDisplay) {
+                    this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle.toFixed(2)}°`;
+                }
+                this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+            },
+            
+            adjustAngle: function(delta) {
+                let newAngle = parseFloat((this.currentAngle + delta).toFixed(2));
+                let activeSlider = this.dom.positionSlider;
+                const sliderMin = parseFloat(activeSlider.min);
+                const sliderMax = parseFloat(activeSlider.max);
+                newAngle = Math.max(sliderMin, Math.min(sliderMax, newAngle));
+                this.currentAngle = newAngle;
+                activeSlider.value = this.currentAngle;
+                if (this.dom.currentAngleDisplay) {
+                    this.dom.currentAngleDisplay.textContent = `Angle: ${this.currentAngle.toFixed(2)}°`;
+                }
+                if (this.currentExperiment) {
+                    this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                }
+            },
+            
+            onParamInput: function() {
+                 if (this.currentExperiment) {
+                    this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                    this.updatePlotAndTheoreticalCurve();
+                }
+            },
+
+            onTiltCheckboxChange: function(event) {
+                this.randomTiltEnabled = event.target.checked;
+                if (this.randomTiltEnabled) {
+                    this.actualTilt = parseFloat((Math.random() * 20 - 10).toFixed(1));
+                    this.dom.tiltAngleInput.value = this.actualTilt;
+                    this.dom.tiltAngleInput.disabled = true;
+                } else {
+                    this.dom.tiltAngleInput.disabled = false;
+                }
+                this.dom.tiltLabelDisplay.textContent = `${this.actualTilt.toFixed(1)}deg Tilt`;
+                this.readings = [];
+                this.initializeDataTable();
+                this.updatePlotAndTheoreticalCurve();
+                this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                
+                this.isBeamwidthCorrect = false;
+                this.dom.checkButton.disabled = true;
+                this.dom.submitButton.disabled = true;
+                this.dom.reportButton.disabled = true;
+                this.dom.takeReadingButton.disabled = false;
+            },
+
+            onTiltInputChange: function(event) {
+                if (!this.randomTiltEnabled) {
+                    this.actualTilt = parseFloat(event.target.value);
+                    this.dom.tiltLabelDisplay.textContent = `${this.actualTilt.toFixed(1)}deg Tilt`;
+                    this.readings = [];
+                    this.initializeDataTable();
+                    this.updatePlotAndTheoreticalCurve();
+                    this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                    
+                    this.isBeamwidthCorrect = false;
+                    this.dom.checkButton.disabled = true;
+                    this.dom.submitButton.disabled = true;
+                    this.dom.reportButton.disabled = true;
+                    this.dom.takeReadingButton.disabled = false;
+                }
+            },
+
+            onBeamwidthInput: function() {
+                this.isBeamwidthCorrect = false;
+                this.dom.submitButton.disabled = true;
+                this.dom.reportButton.disabled = true;
+                if (this.readings.length >= this.maxReadings) {
+                    this.dom.checkButton.disabled = false;
+                }
+            },
+
+            handleTakeReading: function() {
+                if (!this.currentExperiment) {
+                    showMessageBox('Error', 'Please select an experiment first.');
+                    return;
+                }
+                if (this.readings.length >= this.maxReadings) {
+                    showMessageBox('Limit Reached', `You have taken ${this.maxReadings} readings. Please check your value or reset.`);
+                    return;
+                }
+                const angleForReading = this.currentAngle;
+                const currentPr = this.getSimulatedPr(angleForReading, this.currentExperiment, this.randomTiltEnabled ? this.actualTilt : parseFloat(this.dom.tiltAngleInput.value));
+                this.readings.push({ pr: currentPr, angle: angleForReading });
+                const readingIndex = this.readings.length - 1;
+                const readingNumCell = this.dom.readingNumbersRow.children[readingIndex + 1];
+                const prCellToUpdate = this.dom.prValuesRow.children[readingIndex + 1];
+                const angleCellToUpdate = this.dom.angleValuesRow.children[readingIndex + 1];
+                if (readingNumCell) readingNumCell.textContent = (readingIndex + 1).toString();
+                if (prCellToUpdate) prCellToUpdate.textContent = currentPr.toFixed(2);
+                if (angleCellToUpdate) angleCellToUpdate.textContent = angleForReading.toFixed(2);
+                this.updatePlotAndTheoreticalCurve();
+                
+                if (this.readings.length >= this.maxReadings) {
+                    this.dom.checkButton.disabled = false; 
+                    this.dom.checkButton.classList.add('button-primary');
+                    this.dom.checkButton.classList.remove('button-secondary');
+                    this.dom.takeReadingButton.disabled = true; 
+                }
+            },
+            
+            handleCheck: function() {
+                if (this.readings.length === 0) {
+                    showMessageBox('Error', 'Please take some readings before checking.');
+                    return;
+                }
+                const calculatedBeamwidth = this.calculateDynamicBeamwidth(this.readings);
+                const enteredBeamwidth = parseFloat(this.dom.beamwidthInput.value);
+                let message = '';
+                this.isBeamwidthCorrect = false; 
+                
+                const beamwidthTolerance = 0.5;
+                const isBeamwidthMatch = !isNaN(enteredBeamwidth) && Math.abs(enteredBeamwidth - calculatedBeamwidth) < beamwidthTolerance;
+                if (isBeamwidthMatch) {
+                    message = `Your entered beamwidth (${enteredBeamwidth} deg) is correct! You can now submit.`;
+                    this.isBeamwidthCorrect = true;
+                } else {
+                    message = `Your entered value is incorrect. Calculated Beamwidth from data: ${calculatedBeamwidth.toFixed(2)} deg. You can still submit, or correct your value and check again.`;
+                }
+                
+                this.dom.submitButton.disabled = false; 
+                this.dom.submitButton.classList.add('button-primary');
+                this.dom.submitButton.classList.remove('button-secondary');
+                
+                showMessageBox('Check Result', message);
+                this.dom.checkButton.disabled = true; 
+                this.dom.checkButton.classList.add('button-secondary');
+                this.dom.checkButton.classList.remove('button-primary');
+            },
+
+            handleSubmit: function() {
+                this.dom.reportButton.disabled = false; 
+                this.dom.reportButton.classList.add('button-primary');
+                this.dom.reportButton.classList.remove('button-secondary');
+                this.dom.submitButton.disabled = true; 
+                this.dom.submitButton.classList.add('button-secondary');
+                this.dom.submitButton.classList.remove('button-primary');
+                
+                if (this.isBeamwidthCorrect) {
+                    showMessageBox('Submitted', 'Your correct value is submitted. You can now generate the report.');
+                } else {
+                    showMessageBox('Submitted', 'Your value is submitted. You can now generate the report.');
+                }
+            },
+
+            getSimulatedPr: function(angle, experimentType, tiltAngle = 0, addNoise = true) {
+                const currentPt = parseFloat(this.dom.ptInput.value);
+                const currentNp = parseFloat(this.dom.npInput.value);
+                const currentDistance = this.fixedDistance;
+                if (isNaN(currentPt) || isNaN(currentNp) || currentDistance <= 0) {
+                    return -200;
+                }
+                let pathLoss = this.L0_at_reference;
+                if (currentDistance !== this.referenceDistance) {
+                    pathLoss += 10 * currentNp * Math.log10(currentDistance / this.referenceDistance);
+                }
+                let basePr = currentPt - pathLoss;
+                let angularAttenuation = 0;
+                if (experimentType === 'exp3b') {
+                    const angleDeviationFromBoresight = angle - tiltAngle;
+                    const angleAbs = Math.abs(angleDeviationFromBoresight);
+                    const halfPowerAngle = 5;
+                    const attenuationFactor = (angleAbs / halfPowerAngle);
+                    angularAttenuation = -10 * Math.log10(Math.exp(-Math.pow(attenuationFactor, 2)));
+                    angularAttenuation = Math.min(angularAttenuation, 25);
+                }
+                let finalPr = basePr - angularAttenuation;
+                if (addNoise) {
+                    finalPr += (Math.random() * 2 - 1) * 0.5;
+                }
+                return parseFloat(finalPr.toFixed(2));
+            },
+
+            generateTheoreticalCurve: function(tilt) {
+                const curveData = [];
+                const startAngle = parseFloat(this.dom.positionSlider.min);
+                const endAngle = parseFloat(this.dom.positionSlider.max);
+                for (let angle = startAngle; angle <= endAngle; angle += 0.05) {
+                    const pr = this.getSimulatedPr(angle, 'exp3b', tilt, false);
+                    curveData.push({ angle: angle, pr: pr });
+                }
+                return curveData;
+            },
+
+            calculateDynamicBeamwidth: function(data) {
+                if (data.length < 3) {
+                    return 0;
+                }
+                const sortedData = [...data].sort((a, b) => a.angle - b.angle);
+                const maxPr = sortedData.reduce((max, p) => Math.max(max, p.pr), -Infinity);
+                const thresholdPr = maxPr - 3;
+                let left3dBAngle = null;
+                let right3dBAngle = null;
+                let maxPrIndex = sortedData.findIndex(p => p.pr >= maxPr - 0.1);
+                if (maxPrIndex === -1) maxPrIndex = 0;
+                for (let i = maxPrIndex; i >= 0; i--) {
+                    if (sortedData[i].pr <= thresholdPr) {
+                        const p1 = sortedData[i];
+                        const p2 = sortedData[i + 1];
+                        if (p2 && p1.pr !== p2.pr) {
+                            left3dBAngle = p1.angle + (p2.angle - p1.angle) * ((thresholdPr - p1.pr) / (p2.pr - p1.pr));
+                        } else if (p2) {
+                            left3dBAngle = p2.angle;
+                        } else {
+                            left3dBAngle = p1.angle;
+                        }
+                        break;
+                    }
+                }
+                for (let i = maxPrIndex; i < sortedData.length; i++) {
+                    if (sortedData[i].pr <= thresholdPr) {
+                        const p1 = sortedData[i - 1];
+                        const p2 = sortedData[i];
+                        if (p1 && p1.pr !== p2.pr) {
+                            right3dBAngle = p1.angle + (p2.angle - p1.angle) * ((thresholdPr - p1.pr) / (p2.pr - p1.pr));
+                        } else if (p1) {
+                            right3dBAngle = p1.angle;
+                        } else {
+                            right3dBAngle = p2.angle;
+                        }
+                        break;
+                    }
+                }
+                if (left3dBAngle !== null && right3dBAngle !== null) {
+                    return Math.abs(right3dBAngle - left3dBAngle);
+                }
+                return 0;
+            },
+
+            calculateDynamicTiltAngle: function(data) {
+                if (data.length === 0) {
+                    return 0;
+                }
+                let maxPr = -Infinity;
+                let angleAtMaxPr = 0;
+                data.forEach(reading => {
+                    if (reading.pr > maxPr) {
+                        maxPr = reading.pr;
+                        angleAtMaxPr = reading.angle;
+                    }
+                });
+                return parseFloat(angleAtMaxPr.toFixed(1));
+            },
+
+            drawPolarPlot: function(readingsData, theoreticalData) {
+                const canvas = this.dom.plotCanvas;
+                const ctx = this.dom.plotCtx;
+                if (!canvas) return;
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const plotRadius = Math.min(centerX, centerY) * 0.8;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const minPr = -98;
+                const maxPr = -88;
+                const prRange = maxPr - minPr;
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                const numCircles = 5;
+                for (let i = 0; i <= numCircles; i++) {
+                    const currentRadius = (i / numCircles) * plotRadius;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, currentRadius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    if (i > 0) {
+                        const labelPr = minPr + (i / numCircles) * prRange;
+                        ctx.fillStyle = '#666';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(labelPr.toFixed(2), centerX + currentRadius + 5, centerY);
+                    }
+                }
+                ctx.fillStyle = '#FF0000';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0', centerX, centerY);
+                const angleLabels = [0, 45, 90, 135, 180, 225, 270, 315];
+                for (let i = 0; i < angleLabels.length; i++) {
+                    const angleDeg = angleLabels[i];
+                    const angleRad = (angleDeg - 90) * Math.PI / 180;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + plotRadius * Math.cos(angleRad), centerY + plotRadius * Math.sin(angleRad));
+                    ctx.stroke();
+                    const labelOffset = 20;
+                    const labelX = centerX + (plotRadius + labelOffset) * Math.cos(angleRad);
+                    const labelY = centerY + (plotRadius + labelOffset) * Math.sin(angleRad);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(angleDeg + '', labelX, labelY);
+                }
+                if (theoreticalData.length > 0) {
+                    const sortedData = [...theoreticalData].sort((a, b) => a.angle - b.angle);
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#F08080';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([]);
+                    sortedData.forEach((point, index) => {
+                        let normalizedPr = (point.pr - minPr) / prRange;
+                        normalizedPr = Math.max(0, Math.min(1, normalizedPr));
+                        const r = plotRadius * normalizedPr;
+                        const angleRad = (point.angle) * Math.PI / 180;
+                        const x = centerX - r * Math.sin(angleRad);
+                        const y = centerY - r * Math.cos(angleRad);
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    ctx.stroke();
+                }
+                if (readingsData.length > 0) {
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#FF0000';
+                    readingsData.forEach(point => {
+                        let normalizedPr = (point.pr - minPr) / prRange;
+                        normalizedPr = Math.max(0, Math.min(1, normalizedPr));
+                        const r = plotRadius * normalizedPr;
+                        const angleRad = (point.angle) * Math.PI / 180;
+                        const x = centerX - r * Math.sin(angleRad);
+                        const y = centerY - r * Math.cos(angleRad);
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    });
+                }
+            },
+
+            updateMobilePosition: function(angle, experimentType) {
+                const simRect = this.dom.simulationDisplay.getBoundingClientRect();
+                const antennaRealHeight = this.ANTENNA_REAL_HEIGHT;
+                
+                let mobileX, mobileY, mobileDistance, mobileHeight, mobileElevationAngleFromAntenna;
+                
+                if (!experimentType) {
+                    this.dom.mobileElement.style.display = 'none';
+                    this.dom.mobileInfoBox.classList.add('hidden');
+                    this.dom.currentAngleDisplay.textContent = `Angle: 0°`;
+                    return;
+                }
+                this.dom.mobileElement.style.display = 'block';
+                this.dom.mobileInfoBox.classList.remove('hidden');
+                
+                if (experimentType === 'exp3b') {
+                    // Pivot for visual calculation (must match drag logic)
+                    const pivotX = simRect.width * 0.15;
+                    const pivotY = simRect.height * 0.5;
+
+                    // Calculate Visual Delta X and Delta Y
+                    // Horizontal Distance in pixels
+                    const dx = this.fixedDistance * this.PIXELS_PER_METER;
+                    
+                    // Vertical Distance in pixels
+                    // tan(angle) = dy / dx => dy = dx * tan(angle)
+                    // Angle in degrees to radians
+                    const angleRad = angle * (Math.PI / 180);
+                    const dy = dx * Math.tan(angleRad);
+                    
+                    mobileX = pivotX + dx;
+                    mobileY = pivotY - dy; // screen Y is inverted (up is negative)
+                    
+                    mobileElevationAngleFromAntenna = angle;
+                    mobileDistance = this.fixedDistance; // Horizontal distance
+                    
+                    // Real world height calculation for display info
+                    // h = h_tx + d * tan(theta)
+                    mobileHeight = antennaRealHeight + mobileDistance * Math.tan(angleRad);
+                }
+                
+                this.dom.mobileElement.style.left = `${mobileX}px`;
+                this.dom.mobileElement.style.top = `${mobileY}px`;
+                this.dom.mobileElement.style.transform = `translate(-50%, -50%)`;
+                
+                const currentPr = this.getSimulatedPr(mobileElevationAngleFromAntenna, this.currentExperiment, this.randomTiltEnabled ? this.actualTilt : parseFloat(this.dom.tiltAngleInput.value));
+                
+                this.dom.mobileInfoAngle.textContent = `Ang(deg): ${mobileElevationAngleFromAntenna.toFixed(2)}`;
+                this.dom.mobileInfoDistanceHeight.textContent = `d:${mobileDistance.toFixed(1)}m,h:${mobileHeight.toFixed(1)}m`;
+                this.dom.mobileInfoPr.textContent = `Pr(dBm): ${currentPr.toFixed(4)}`;
+                
+                this.dom.mobileInfoBox.style.left = `${mobileX}px`;
+                this.dom.mobileInfoBox.style.top = `${mobileY}px`;
+                this.dom.mobileInfoBox.classList.remove('hidden');
+            },
+
+            resizeAllCanvases: function() {
+                if (this.currentExperiment !== 'exp3b') return;
+                try {
+                    const plotDisplayRect = this.dom.plotCanvas.parentElement.getBoundingClientRect();
+                    this.dom.plotCanvas.width = plotDisplayRect.width;
+                    this.dom.plotCanvas.height = plotDisplayRect.height;
+                    this.updatePlotAndTheoreticalCurve();
+                    if (this.currentExperiment) {
+                        this.updateMobilePosition(this.currentAngle, this.currentExperiment);
+                    }
+                } catch(e) {
+                    // Canvas might not be ready, ignore
+                }
+            },
+            
+            initializeDataTable: function() {
+                while (this.dom.readingNumbersRow.children.length > 1) {
+                    this.dom.readingNumbersRow.removeChild(this.dom.readingNumbersRow.lastChild);
+                }
+                while (this.dom.prValuesRow.children.length > 1) {
+                    this.dom.prValuesRow.removeChild(this.dom.prValuesRow.lastChild);
+                }
+                while (this.dom.angleValuesRow.children.length > 1) {
+                    this.dom.angleValuesRow.removeChild(this.dom.angleValuesRow.lastChild);
+                }
+                for (let i = 0; i < this.maxReadings; i++) {
+                    const numCell = document.createElement('td');
+                    numCell.textContent = (i + 1).toString();
+                    this.dom.readingNumbersRow.appendChild(numCell);
+                    const prCell = document.createElement('td');
+                    prCell.textContent = '-';
+                    this.dom.prValuesRow.appendChild(prCell);
+                    const angleCell = document.createElement('td');
+                    angleCell.textContent = '-';
+                    this.dom.angleValuesRow.appendChild(angleCell);
+                }
+            },
+
+            updatePlotAndTheoreticalCurve: function() {
+                const currentTilt = this.randomTiltEnabled ? this.actualTilt : parseFloat(this.dom.tiltAngleInput.value);
+                this.theoreticalData = this.generateTheoreticalCurve(currentTilt);
+                this.drawPolarPlot(this.readings, this.theoreticalData);
+            },
+            
+            generateReportPdf: async function() {
+                if (this.readings.length === 0) {
+                    showMessageBox('Error', 'Please take some readings before generating a report.');
+                    return;
+                }
+                showMessageBox('Generating Report', 'Please wait, your report is being generated...');
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const now = new Date();
+                const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+                const formattedDate = now.toLocaleDateString(undefined, dateOptions);
+                const formattedTime = now.toLocaleTimeString(undefined, timeOptions);
+                doc.setFontSize(18);
+                doc.text("Fading Channels & Mobile Communications", 105, 20, null, null, "center");
+                doc.setFontSize(12);
+                doc.text("IIT Kharagpur", 105, 27, null, null, "center");
+                doc.setFontSize(12);
+                doc.text(`Generated for: ${userName}`, 10, 40);
+                doc.text(`Experiment: Vertical Beam Pattern`, 10, 47);
+                doc.text(`Date: ${formattedDate} ${formattedTime}`, 10, 54);
+                let yOffset = 65;
+                doc.setFontSize(14);
+                doc.text("Experiment Inputs:", 10, yOffset);
+                yOffset += 8;
+                doc.setFontSize(12);
+                doc.text(`Distance (Dist): ${this.fixedDistance.toFixed(1)} m`, 10, yOffset);
+                yOffset += 7;
+                doc.text(`Transmitted Power (Pt): ${this.dom.ptInput.value} dBm`, 10, yOffset);
+                yOffset += 7;
+                doc.text(`Path Loss Exponent (np): ${this.dom.npInput.value}`, 10, yOffset);
+                yOffset += 7;
+                doc.text(`Simulated Tilt (Actual Tilt): ${this.actualTilt.toFixed(1)} deg`, 10, yOffset);
+                yOffset += 7;
+                yOffset += 8;
+                doc.setFontSize(14);
+                doc.text("Recorded Readings:", 10, yOffset);
+                yOffset += 8;
+                const tableHeaders = [['Pr(dBm)', 'Angle(deg)']];
+                const tableData = this.readings.map(r => [r.pr.toFixed(2), r.angle.toFixed(2)]);
+                doc.autoTable({
+                    startY: yOffset,
+                    head: tableHeaders,
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [237, 242, 247],
+                        textColor: [0, 0, 0],
+                        fontStyle: 'bold'
+                    },
+                    bodyStyles: {
+                        halign: 'center'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [255, 255, 255]
+                    },
+                    didDrawPage: function(data) {
+                        if (data.pageNumber > 1) {
+                            doc.setFontSize(14);
+                            doc.text("Recorded Readings: (continued)", 10, 20);
+                        }
+                    }
+                });
+                yOffset = doc.autoTable.previous.finalY + 10;
+                try {
+                    const plotCanvasImg = await html2canvas(this.dom.plotCanvas);
+                    const plotImgData = plotCanvasImg.toDataURL('image/png');
+                    const imgWidth = 180 * 0.6;
+                    const imgHeight = (plotCanvasImg.height * imgWidth) / plotCanvasImg.width;
+                    if (yOffset + imgHeight > doc.internal.pageSize.height - 20) {
+                        doc.addPage();
+                        yOffset = 20;
+                    }
+                    doc.addImage(plotImgData, 'PNG', 15, yOffset, imgWidth, imgHeight);
+                    yOffset += imgHeight + 10;
+                    doc.setFontSize(12);
+                    doc.text("Power Received (dBm) vs. Angle (deg) Plot", 105, yOffset, null, null, "center");
+                    doc.setFontSize(10);
+                    doc.text("(Recorded data points are overlaid on the theoretical curve)", 105, yOffset + 5, null, null, "center");
+                    yOffset += 10;
+                } catch (error) {
+                    console.error("Error capturing plot canvas:", error);
+                    doc.text("Error: Could not capture plot image.", 10, yOffset);
+                    yOffset += 10;
+                }
+                const calculatedBeamwidth = this.calculateDynamicBeamwidth(this.readings);
+                const calculatedTiltFromData = this.calculateDynamicTiltAngle(this.readings);
+                const enteredBeamwidth = parseFloat(this.dom.beamwidthInput.value);
+                const enteredTilt = parseFloat(this.dom.tiltAngleInput.value);
+                let resultMessage = '';
+                if (this.isBeamwidthCorrect) { 
+                    resultMessage = `Your entered values are correct!`;
+                } else {
+                    resultMessage = `Your entered value is incorrect. Calculated Beamwidth: ${calculatedBeamwidth.toFixed(2)} deg.`;
+                }
+                if (yOffset + 60 > doc.internal.pageSize.height - 20) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                doc.setFontSize(14);
+                doc.text("Manual Calculation Check:", 10, yOffset + 10);
+                doc.setFontSize(12);
+                doc.text(`Entered Beam Width (deg): ${isNaN(enteredBeamwidth) ? 'N/A' : enteredBeamwidth.toFixed(2)}`, 10, yOffset + 20);
+                doc.text(`Calculated Beam Width: ${calculatedBeamwidth.toFixed(2)}`, 10, yOffset + 30);
+                doc.text(`Entered Tilt Angle (deg): ${isNaN(enteredTilt) ? 'N/A' : enteredTilt.toFixed(2)}`, 10, yOffset + 40);
+                doc.text(`Calculated Tilt Angle (from data): ${calculatedTiltFromData.toFixed(2)}`, 10, yOffset + 50);
+                doc.text(`Result: ${resultMessage}`, 10, yOffset + 60);
+                
+                const signatureLineY = doc.internal.pageSize.height - 30;
+                doc.line(20, signatureLineY, 100, signatureLineY); // User signature line
+                doc.text(`(Signature of ${userName})`, 20, signatureLineY + 5);
+                doc.line(130, signatureLineY, 200, signatureLineY); // Faculty signature line
+                doc.text(`(Signature of Faculty)`, 130, signatureLineY + 5);
+                
+                doc.save(`Exp3B_Report_${userName.replace(/\s/g, '_') || 'Guest'}.pdf`);
+                hideMessageBox();
+                showMessageBox('Report Generated', 'Your PDF report has been generated and downloaded.');
+            }
+        };
+
+
+        // --- GLOBAL INITIALIZATION ---
+        window.addEventListener('load', () => {
+            nameModal.classList.remove('hidden');
+            userNameInput.focus();
+        });
+
+        okButton.addEventListener('click', () => {
+            userName = userNameInput.value.trim();
+            if (userName) {
+                nameModal.classList.add('hidden');
+                welcomeMessage.textContent = `Welcome! ${userName}`;
+                welcomeMessage.classList.remove('hidden');
+                globalExpSelectionPanel.classList.remove('hidden');
+                
+                // Init both modules
+                Experiment3A.init();
+                Experiment3B.init();
+                
+            } else {
+                showMessageBox('Input Error', 'Please enter your name to proceed.');
+            }
+        });
+
+        selectExp3aButton.addEventListener('click', () => {
+            exp3bContent.classList.add('hidden');
+            exp3aContent.classList.remove('hidden');
+            Experiment3A.selectExperiment();
+        });
+        
+        selectExp3bButton.addEventListener('click', () => {
+            exp3aContent.classList.add('hidden');
+            exp3bContent.classList.remove('hidden');
+            Experiment3B.selectExperiment();
+        });
+
+        globalResetButton.addEventListener('click', () => {
+            userName = '';
+            welcomeMessage.classList.add('hidden');
+            globalExpSelectionPanel.classList.add('hidden');
+            exp3aContent.classList.add('hidden');
+            exp3bContent.classList.add('hidden');
+            globalExperimentTitle.textContent = '';
+            
+            // Note: The Experiment objects are still initialized,
+            // but their internal state will be reset when 'selectExperiment' is called next.
+            
+            nameModal.classList.remove('hidden');
+            userNameInput.value = '';
+            userNameInput.focus();
+        });
+    </script>
+<script src="../assets/js/iframeResize.js"></script>
+        
+        </body>
+</html>
